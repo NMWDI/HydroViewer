@@ -17,30 +17,51 @@ map.setView([33.5, -104.5], 7);
 var layerControl = L.control.layers({"osm": osm}, null).addTo(map);
 
 var use_cluster = false;
+var allmarkers = [];
 
-var sourceURL = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/ose_roswell.json';
 $.getJSON(sourceURL).done(
     function (data){
         var locations=data['locations']
         // var layer = new L.LayerGroup();
-        var markers = []
-        locations.forEach(function (loc){
-            var marker = L.circleMarker([loc['location']['coordinates'][1], loc['location']['coordinates'][0], ])
-            marker.stid = loc['@iot.id']
-            marker.name = loc['name']
-            markers.push(marker)
-        })
-        console.log(markers)
-        var layer = new L.featureGroup(markers)
-
-        layer.on('click', function(e){
-            console.log('map click', e.layer.stid)
-            selectLocation(e.layer.stid, e.layer.name)
-        })
-        map.addLayer(layer)
-        layerControl.addOverlay(layer, 'OSE Roswell')
+        let usgs = locations.filter(function(l){return l['source']=='USGS'})
+        let ose = locations.filter(function(l){return l['source']=='OSE-Roswell'})
+        loadLayer(ose, 'blue', 'OSE Roswell');
+        loadLayer(usgs, 'green', 'USGS');
     }
 )
+
+function loadLayer(ls, color, label){
+    console.log('load late')
+
+        let markers = ls.map(function (loc){return loadMarker(loc, color)})
+
+        var layer = new L.featureGroup(markers)
+        map.addLayer(layer)
+        layerControl.addOverlay(layer, label)
+
+        layer.on('click', function(e){
+            toggleLocation(e.layer.stid, e.layer.name)
+        })
+}
+function loadMarker(loc, color){
+    var marker = L.circleMarker([loc['location']['coordinates'][1], loc['location']['coordinates'][0], ],)
+    marker.setStyle({color: color,
+        fillColor: color,
+        radius: 4})
+    marker.stid = loc['@iot.id']
+    marker.name = loc['name']
+    marker.source =loc['source']
+    allmarkers.push(marker)
+    return marker
+    // markers.push(marker)
+}
+// var sourceURL = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/ose_roswell.json';
+// var ose_roswell_markers = []
+// loadSource(sourceURL, ose_roswell_markers, 'blue', 'OSE Roswell');
+
+// var sourceURL = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/usgs_pvacd.json';
+// var usgs_pvacd_markers = []
+// loadSource(sourceURL, usgs_pvacd_markers, 'green', 'USGS');
 
 
 

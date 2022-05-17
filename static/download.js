@@ -20,6 +20,23 @@ function downloadWellMetaDataAll(){
 
 }
 
+function downloadSelectedObservations(){
+    console.log(myChart.data.datasets);
+    content = "name,datetime,result\r\n"
+    myChart.data.datasets.forEach(function(dataset){
+        let rows = dataset.data
+        rows.forEach(function(obs){
+            let row = [dataset.label, obs[0].toISOString(), obs[1]]
+            content+=row+"\r\n"
+        })
+
+    })
+    console.log(content)
+    downloadFile('Results', content)
+}
+
+
+
 function downloadFile(filename, text){
       var element = document.createElement('a');
       element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
