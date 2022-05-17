@@ -4,7 +4,22 @@ $(document).ready(function (){
 
     const ctx = document.getElementById('hydrograph').getContext('2d');
     const myChart = new Chart(ctx, {type: 'line',
-                                    data: {labels: [], datasets:[]}})
+                                    data: {labels: [], datasets:[]},
+
+        options: {
+            scales: {
+                yAxis: {
+                    position: "left",
+                    reverse: true,
+
+                },
+                xAxis: {
+                    position: "bottom",
+                    type: "time"
+                }
+            }
+        }
+    })
     $.getJSON(sourceURL)
         .done(function (data) {
             var table = $('#wellstable')
@@ -46,14 +61,25 @@ $(document).ready(function (){
                         $.get("https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Datastreams("+ds["@iot.id"]+")/Observations?$orderby=phenomenonTime desc").then(
                             function(obs){
                                 console.log(obs)
-                                var nobs = obs['value'].map(function(o){return [o['phenomenonTime'], o['result']]})
-                                
-                                myChart.data.datasets.push({data: nobs, label: name})
+                                myChart.data  = {
+                                    labels: obs['value'].map(f=>{
+                                        var d = new Date(f['phenomenonTime'])
+                                        d.setHours(d.getHours()+6)
+                                        return d
+                                    }),
+                                    datasets: [{
+                                        label: name,
+                                        data: obs['value'].map(f=>{
+                                            return f['result']
+                                        }),
+                                        fill: false,
+                                        borderColor: 'rgb(75, 192, 192)',
+                                        tension: 0.1
+                                    }]
+                                }
                                 myChart.update()
-
                             }
                         )
-
                         })
                 }
             });

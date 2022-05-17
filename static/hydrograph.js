@@ -1,6 +1,7 @@
 $(document).ready(function(){
     const ctx = document.getElementById('hydrograph').getContext('2d');
-    const myChart = new Chart(ctx, {type: 'line'})
+    const myChart = new Chart(ctx, {type: 'line',
+        })
 
 
 })
