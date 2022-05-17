@@ -1,0 +1,16 @@
+service: hydroviewer
+runtime: python39
+instance_class: F4
+threadsafe: yes
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: .*
+  script: main.app
+
+#libraries:
+#- name: webapp2
+#  version: "2.5.2"
