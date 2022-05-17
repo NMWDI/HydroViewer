@@ -1,25 +1,28 @@
+const ytitle = 'Depth to Water (ft BGS)'
 
-var sourceURL = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/ose_roswell.json';
-$(document).ready(function (){
-
-    const ctx = document.getElementById('hydrograph').getContext('2d');
-    const myChart = new Chart(ctx, {type: 'line',
+const ctx = document.getElementById('graph').getContext('2d');
+const myChart = new Chart(ctx, {type: 'line',
                                     data: {labels: [], datasets:[]},
-
         options: {
             scales: {
                 yAxis: {
                     position: "left",
                     reverse: true,
+                    beginAtZero: true,
+                    title: {text: ytitle, display: true}
 
                 },
                 xAxis: {
                     position: "bottom",
-                    type: "time"
+                    type: "time",
+                    title: {text: "Time", display: true}
                 }
             }
         }
     })
+
+var sourceURL = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/ose_roswell.json';
+$(document).ready(function (){
     $.getJSON(sourceURL)
         .done(function (data) {
             var table = $('#wellstable')
@@ -50,11 +53,20 @@ $(document).ready(function (){
                 var iotid = dtt.rows( indexes ).data().pluck( 'id' )[0];
                 var name = dtt.rows( indexes ).data().pluck( 'name' )[0];
 
-                $.get("https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations("+iotid+')?$expand=Things/Datastreams').then(
+                selectLocation(iotid, name)
+                }
+            });
+    })
+})
+
+
+function selectLocation(iotid, name){
+    $.get("https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations("+iotid+')?$expand=Things/Datastreams').then(
                     function (data){
                         console.log('reload data', data)
                         var thing = data['Things'][0]
                         var ds = thing['Datastreams'][0]
+                        var obsdtt =  $('#obstable').DataTable()
                         obsdtt.ajax.url("https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Datastreams("+ds["@iot.id"]+")/Observations?$orderby=phenomenonTime desc")
                         obsdtt.ajax.reload()
 
@@ -81,7 +93,4 @@ $(document).ready(function (){
                             }
                         )
                         })
-                }
-            });
-    })
-})
+}

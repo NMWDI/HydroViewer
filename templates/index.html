@@ -49,9 +49,16 @@
 </head>
 
 <body>
-    <h1>Welcome to PVACD HydroViewer</h1>
+
     <div class="container">
         <div class="row">
+            <h1>{{ title }}</h1>
+        </div>
+        <div class="row">
+            <button onclick="downloadWellMetaDataAll()">DownloadAll</button>
+        </div>
+        <div class="row">
+            <div id="map" class="col-lg"></div>
             <div class="col-lg">
                 <table id="wellstable" class="table table-striped table-bordered table-sm">
                     <thead>
@@ -76,25 +83,12 @@
 {#            <div id="map" class="col-lg"></div>#}
         </div>
         <div class="row">
+            <canvas id="graph" width="400" height="100"></canvas>
         </div>
     </div>
-    <canvas id="hydrograph" width="400" height="100"></canvas>
 
-{#    <script>#}
-{#            var table = $("#wellstable tr").click(function(){#}
-{#                console.log('asfasdf');#}
-{#                $(this).addClass('selected').siblings().removeClass('selected');#}
-{#                var value=$(this).find('td:first').html();#}
-{#                console.log(value)#}
-{#                alert(value);#}
-{#            })#}
-{#    </script>#}
-
-
-{#    <div id="map"></div>#}
-
-{#    <script src="{{ url_for('static', filename='hydrograph.js') }}">#}
-{#    </script>#}
+    <script src="{{ url_for('static', filename='download.js') }}">
+    </script>
 
     <script src="{{ url_for('static', filename='table.js') }}">
     </script>

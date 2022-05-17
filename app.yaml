@@ -1,7 +1,6 @@
 service: hydroviewer
 runtime: python39
 instance_class: F4
-threadsafe: yes
 
 handlers:
 - url: /favicon\.ico

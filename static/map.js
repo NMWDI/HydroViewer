@@ -12,7 +12,7 @@ var map = L.map('map', {
         layers: [osm]
     }
 )
-map.setView([34.359593, -106.906871], 7);
+map.setView([33.5, -104.5], 7);
 
 var layerControl = L.control.layers({"osm": osm}, null).addTo(map);
 
@@ -26,14 +26,23 @@ $.getJSON(sourceURL).done(
         var markers = []
         locations.forEach(function (loc){
             var marker = L.circleMarker([loc['location']['coordinates'][1], loc['location']['coordinates'][0], ])
+            marker.stid = loc['@iot.id']
+            marker.name = loc['name']
             markers.push(marker)
         })
         console.log(markers)
-        var layer = new L.LayerGroup(markers)
+        var layer = new L.featureGroup(markers)
+
+        layer.on('click', function(e){
+            console.log('map click', e.layer.stid)
+            selectLocation(e.layer.stid, e.layer.name)
+        })
         map.addLayer(layer)
         layerControl.addOverlay(layer, 'OSE Roswell')
     }
 )
+
+
 
 //
 // $.getJSON("st2locations").then(
