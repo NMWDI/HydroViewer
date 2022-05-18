@@ -77,76 +77,91 @@ function toggleLocation(iotid, name){
 
 }
 function deselectLocation(iotid, name){
+    console.log('deselect location')
     var datasets = myChart.data.datasets
     console.log(iotid, name)
-    console.log(datasets.filter(function(d){
-        return !(d.label === name)
-    }))
+    // console.log(datasets.filter(function(d){
+    //     return !(d.label === name)
+    // }))
     myChart.data.datasets = datasets.filter(function(d){
         return !(d.label === name)
     })
     myChart.update()
 
-    ose_roswell_markers.forEach(function (m){
+    allmarkers.forEach(function (m){
         if (m.stid===iotid){
-            m.setStyle({color: 'blue',
-                              fillColor: 'blue'})
-            m.bringToFront();
-        }
-    })
-    usgs_pvacd_markers.forEach(function (m){
-        if (m.stid===iotid){
-            m.setStyle({color: 'blue',
-                              fillColor: 'blue'})
-            m.bringToFront();
+            m.setStyle({color: m.defaultColor,
+                        fillColor: m.defaultColor})
         }
     })
 }
 
 const colors = chroma.scale(['#eeee14','#1471a2']).mode('lch').colors(10)
 
+function getMarker(iotid){
+    return allmarkers.filter(function (m){ return m.stid == iotid})[0]
+}
+
 function selectLocation(iotid, name){
     // hightlight points on the map
 
-    var url = '';
-    console.log('adf', allmarkers)
-    allmarkers.forEach(function (m){
-        if (m.stid===iotid){
-            m.setStyle({color: 'red',
-                                fillColor: 'red'})
-            m.bringToFront();
+    // var url = '';
+    // console.log('adf', allmarkers)
+    // allmarkers.forEach(function (m){
+    //     if (m.stid===iotid){
+    //         m.setStyle({color: 'red',
+    //                             fillColor: 'red'})
+    //         m.bringToFront();
+    //
+    //         if (m.source=='USGS'){
+    //             url = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
+    //             make_id = function(iotid){
+    //             return "'"+iotid+"'"
+    //             }
+    //         }else{
+    //             url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/"
+    //             make_id = function(iotid){
+    //             return iotid
+    //             }
+    //         }
+    //
+    //
+    //     }
+    // })
+    let m = getMarker(iotid)
+    if (!m){
+        return
+    }
 
-            if (m.source=='USGS'){
-                url = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
-                make_id = function(iotid){
-                return "'"+iotid+"'"
-                }
-            }else{
-                url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/"
-                make_id = function(iotid){
-                return iotid
-                }
-            }
-
-
+    let url;
+    if (m.source=='USGS'){
+        url = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
+        make_id = function(iotid){
+        return "'"+iotid+"'"
         }
-    })
-
+    }else{
+        url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/"
+        make_id = function(iotid){
+        return iotid
+        }
+    }
 
     $.get(url+'Locations('+make_id(iotid)+')?$expand=Things/Datastreams').then(
                     function (data){
-                        console.log('reload data', data)
+                        // console.log('reload data', data)
                         var thing = data['Things'][0]
                         var ds = thing['Datastreams'][0]
                         var obsdtt =  $('#obstable').DataTable()
-                        var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$orderby=phenomenonTime desc"
-                        obsdtt.ajax.url(obsurl)
-                        obsdtt.ajax.reload()
-
-                        var datasets = myChart.data.datasets
-                        console.log(!(datasets.map(function(d){return d.label}).includes(name)),
-                            name, datasets.map(function(d){return d.label}))
-                        if (!(datasets.map(function(d){return d.label}).includes(name))){
+                        if (ds){
+                            m.setStyle({color: 'red',fillColor: 'red'})
+                            m.bringToFront();
+                            var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$orderby=phenomenonTime desc"
+                            obsdtt.ajax.url(obsurl)
+                            obsdtt.ajax.reload()
+                             var datasets = myChart.data.datasets
+                            // console.log(!(datasets.map(function(d){return d.label}).includes(name)),
+                            // name, datasets.map(function(d){return d.label}))
+                            if (!(datasets.map(function(d){return d.label}).includes(name))){
                             $.get(obsurl).then(
                             function(obs){
                                 console.log(obs)
@@ -166,5 +181,8 @@ function selectLocation(iotid, name){
                                 datasets.push(ndata)
                                 myChart.update()
                             }
-                )}})
+                )}
+                        }
+                    }
+    )
 }

@@ -25,8 +25,10 @@ $.getJSON(sourceURL).done(
         // var layer = new L.LayerGroup();
         let usgs = locations.filter(function(l){return l['source']=='USGS'})
         let ose = locations.filter(function(l){return l['source']=='OSE-Roswell'})
+        let nmbgmr = locations.filter(function(l){return l['source']=='NMBGMR'})
         loadLayer(ose, 'blue', 'OSE Roswell');
         loadLayer(usgs, 'green', 'USGS');
+        loadLayer(nmbgmr, 'orange', 'NMGBMR');
     }
 )
 
@@ -51,6 +53,7 @@ function loadMarker(loc, color){
     marker.stid = loc['@iot.id']
     marker.name = loc['name']
     marker.source =loc['source']
+    marker.defaultColor = color
     allmarkers.push(marker)
     return marker
     // markers.push(marker)

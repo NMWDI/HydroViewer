@@ -36,16 +36,28 @@ def make_locations(url, out, source):
 
 
 if __name__ == '__main__':
-    url = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations?$orderby=id&$filter=properties/agency%20eq%20%27OSE-Roswell%27'
-    out = 'ose_roswell'
-    make_locations(url, out, 'OSE-Roswell')
+    # url = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations?$orderby=id&$filter=properties/agency%20eq%20%27OSE-Roswell%27'
+    # out = 'ose_roswell'
+    # make_locations(url, out, 'OSE-Roswell')
     # points = ['-105.70 34.73', '-103.05 34.73',
     #           '-105.70 32.3',  '-103.05 32.3',
     #           '-105.70 34.73'
     #           ]
     # points = ','.join(points)
-    # url = "https://labs.waterdata.usgs.gov/sta/v1.1/Locations?$filter=st_within(Location/location, geography'POLYGON (({" \
-    #       "}))')".format(points)
+
+    points = ['-105.70 34.73', '-103.05 34.73',
+              '-105.70 32.3',  '-103.05 32.3',
+              '-105.70 34.73'
+              ]
+    points = ','.join(points)
+    url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations?$filter=properties/agency eq 'NMBGMR' and " \
+          "st_within(" \
+          "Location/location, " \
+          "geography'POLYGON (({" \
+          "}))')".format(points)
+
+    out = 'nmbgmr'
+    make_locations(url, out, 'NMBGMR')
     # out = 'usgs_pvacd'
     # make_locations(url, out, 'USGS')
 # ============= EOF =============================================
