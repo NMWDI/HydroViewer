@@ -54,6 +54,7 @@ function loadMarker(loc, color){
     marker.name = loc['name']
     marker.source =loc['source']
     marker.defaultColor = color
+    marker.properties = loc['properties']
     allmarkers.push(marker)
     return marker
     // markers.push(marker)

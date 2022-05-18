@@ -30,12 +30,14 @@ $(document).ready(function (){
             locations.forEach(function(loc){
                 loc['id'] = loc['@iot.id']
             })
+            console.log(locations)
             var dtt = table.DataTable({select: {style: 'multi'},
                             aaData: locations,
                             columns: [
                                       {data: "id"},
                                       {data: "name"},
-                                      {data: "description"}]})
+                                      {data: "description"},
+                                      {data: "source"}]})
 
             var obstable = $('#obstable')
             var obsdtt = obstable.DataTable({
@@ -145,6 +147,32 @@ function selectLocation(iotid, name){
         return iotid
         }
     }
+
+    let infocontent=`<thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>`
+    infocontent+=`<tr>
+<td>ID</td>
+<td>`+iotid+`</td>
+</tr>
+<tr>
+<td>Name</td>
+<td>`+name+`</td>
+</tr>
+`
+    for (const key in m.properties){
+        let row='<tr>'+
+            '<td>'+key+'</td>'+
+            '<td>'+m.properties[key]+'</td>'+
+            '</tr>'
+        infocontent+=row
+    }
+
+    $('#infotable').html(infocontent)
+
 
     $.get(url+'Locations('+make_id(iotid)+')?$expand=Things/Datastreams').then(
                     function (data){
