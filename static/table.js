@@ -20,8 +20,21 @@ const myChart = new Chart(ctx, {type: 'line',
         options: options
     })
 
+// $(document).on({
+//     ajaxStart: function(){
+//         console.log('start')
+//
+//     },
+//     ajaxStop: function(){
+//         console.log('stop')
+//         $("#graphcontainer").removeClass("loading");
+//     }
+// });
 
 $(document).ready(function (){
+
+    $('#progress').hide()
+
     $.getJSON(sourceURL)
         .done(function (data) {
             var table = $('#wellstable')
@@ -39,6 +52,13 @@ $(document).ready(function (){
                                       {data: "description"},
                                       {data: "source"}]})
 
+            // add a button to the column
+            //{data: null,
+            //                                 render: function (data) {
+            //                             return `<div class="text-center">
+            //                             <a class='btn  btn-primary' onclick="AddToCart(${data})" >
+            //                                <i class='far fa-trash-alt'></i> Delete
+            //                             </a></div>`}},
             var obstable = $('#obstable')
             var obsdtt = obstable.DataTable({
                         ajax: {url:'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Observations?$top=1',
@@ -67,6 +87,11 @@ $(document).ready(function (){
             });
         })
 })
+function AddToCart(id){
+            alert(id);
+            $('#lblID').val(id);
+            $('#deleteConfirmationModal').modal('show');
+}
 
 function toggleLocation(iotid, name){
     if (myChart.data.datasets.map(function(d){
@@ -74,7 +99,9 @@ function toggleLocation(iotid, name){
     }).includes(name)){
         deselectLocation(iotid, name)
     }else{
+
         selectLocation(iotid, name)
+
     }
 
 }
@@ -105,48 +132,131 @@ function getMarker(iotid){
 }
 
 function selectLocation(iotid, name){
-    // hightlight points on the map
+    console.log('location selected')
 
-    // var url = '';
-    // console.log('adf', allmarkers)
-    // allmarkers.forEach(function (m){
-    //     if (m.stid===iotid){
-    //         m.setStyle({color: 'red',
-    //                             fillColor: 'red'})
-    //         m.bringToFront();
-    //
-    //         if (m.source=='USGS'){
-    //             url = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
-    //             make_id = function(iotid){
-    //             return "'"+iotid+"'"
-    //             }
-    //         }else{
-    //             url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/"
-    //             make_id = function(iotid){
-    //             return iotid
-    //             }
-    //         }
-    //
-    //
-    //     }
-    // })
+    document.getElementById("progress").style.display ="flex"
+
+    // hightlight points on the map
     let m = getMarker(iotid)
     if (!m){
         return
     }
 
     let url;
+    let dsname;
     if (m.source=='USGS'){
         url = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
+        dsname = ''
         make_id = function(iotid){
         return "'"+iotid+"'"
         }
     }else{
         url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/"
+        dsname = 'Groundwater Levels'
         make_id = function(iotid){
         return iotid
         }
     }
+
+    clearInfoTables()
+    populateLocationInfoTable(iotid, name, m.properties)
+    let locationURL = url+'Locations('+make_id(iotid)+')'
+    $.get(locationURL+'?$expand=Things/Datastreams').then(
+                    function (data){
+                        // console.log('reload data', data)
+                        var thing = data['Things'][0]
+
+                        populateThingInfoTable(thing)
+                        openInfo(null, 'Location')
+                        populateDatastreamsInfoTable(thing['Datastreams'])
+
+                        let ds;
+                        if (dsname){
+                            ds = thing['Datastreams'].filter(function (d){
+                            return d['name'] == dsname
+                            })[0]
+                        }else{
+                            ds = thing['Datastreams'][0]
+                        }
+
+                        var obsdtt =  $('#obstable').DataTable()
+                        if (ds){
+                            populateDatastreamInfoTable(ds)
+
+                            m.setStyle({color: 'red',fillColor: 'red'})
+                            m.bringToFront();
+                            var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
+                            obsdtt.ajax.url(obsurl)
+                            obsdtt.ajax.reload()
+                             var datasets = myChart.data.datasets
+                            // console.log(!(datasets.map(function(d){return d.label}).includes(name)),
+                            // name, datasets.map(function(d){return d.label}))
+                            if (!(datasets.map(function(d){return d.label}).includes(name))){
+                                retrieveItems(obsurl, 10000,
+                                    function(obs){
+                                    ndata = {
+                                            iot: {'Datastream': ds,
+                                                  'Thing': thing,
+                                                  'Location': {'name': name,
+                                                                '@iot.id': iotid,
+                                                                'url': locationURL},
+                                                  'sourceURL': url,
+                                                  'source': m.source},
+                                            label: name,
+                                            data: obs.map(f=>{
+                                                var d = new Date(f['phenomenonTime'])
+                                                d.setHours(d.getHours()+6)
+                                                return [d, f['result']]
+                                            }),
+
+                                            borderColor: colors[iotid%10],
+                                            backgroundColor: colors[iotid%10],
+                                            tension: 0.1
+                                        }
+
+                                    datasets.push(ndata)
+                                    myChart.update()
+                                    document.getElementById("progress").style.display ="none"
+                            }
+                         )}
+                        }
+                        document.getElementById("progress").style.display ="none"
+                    }
+    )
+}
+
+const retrieveItems = (url, maxitems, callback) => {
+    new Promise((resolve, reject) => {
+        getItems(url, maxitems, 0, [], resolve, reject)}).then(callback)
+}
+
+
+const getItems = (url, maxitems, i, items, resolve, reject) =>{
+    $.get(url).then(response=>{
+        let ritems = items.concat(response.value)
+        if (maxitems>0){
+            if (ritems.length>maxitems){
+                ritems = ritems.slice(0,maxitems)
+                resolve(ritems)
+                return
+            }
+        }
+
+        if (response['@iot.nextLink']!=null){
+            getItems(response['@iot.nextLink'], maxitems, i+1, ritems, resolve, reject)
+        }else{
+            resolve(ritems)
+        }
+    })
+}
+
+function clearInfoTables(){
+    $('#datastreaminfotable').html(makeInfoContent( '', '', null))
+    $('#thinginfotable').html(makeInfoContent('', '', null))
+    $('#locationinfotable').html(makeInfoContent('', '', null))
+
+}
+function makeInfoContent(iotid, name, properties){
 
     let infocontent=`<thead>
                         <tr>
@@ -155,62 +265,82 @@ function selectLocation(iotid, name){
                         </tr>
                     </thead>`
     infocontent+=`<tr>
-<td>ID</td>
-<td>`+iotid+`</td>
-</tr>
-<tr>
-<td>Name</td>
-<td>`+name+`</td>
-</tr>
-`
-    for (const key in m.properties){
+    <td>ID</td>
+    <td>`+iotid+`</td>
+    </tr>
+    <tr>
+    <td>Name</td>
+    <td>`+name+`</td>
+    </tr>`
+
+     for (const key in properties){
+         let value = properties[key]
+         if (value instanceof Object){
+             value = JSON.stringify(value)
+         }
         let row='<tr>'+
             '<td>'+key+'</td>'+
-            '<td>'+m.properties[key]+'</td>'+
+            '<td>'+value+'</td>'+
             '</tr>'
         infocontent+=row
     }
+     return infocontent
+}
 
-    $('#infotable').html(infocontent)
+function populateDatastreamsInfoTable(dss){
+    let table = '';
+    for (const di in dss){
+        let item = dss[di]
+        let content = '<td>'+item['@iot.id'] +'</td>'+
+            '<td>'+item['name'] +'</td>'+
+            '<td>'+item['unitOfMeasurement']['symbol'] +'</td>'
+        let row = '<tr>'+content+'</tr>'
+        table+=row
+    }
 
-
-    $.get(url+'Locations('+make_id(iotid)+')?$expand=Things/Datastreams').then(
-                    function (data){
-                        // console.log('reload data', data)
-                        var thing = data['Things'][0]
-                        var ds = thing['Datastreams'][0]
-                        var obsdtt =  $('#obstable').DataTable()
-                        if (ds){
-                            m.setStyle({color: 'red',fillColor: 'red'})
-                            m.bringToFront();
-                            var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$orderby=phenomenonTime desc"
-                            obsdtt.ajax.url(obsurl)
-                            obsdtt.ajax.reload()
-                             var datasets = myChart.data.datasets
-                            // console.log(!(datasets.map(function(d){return d.label}).includes(name)),
-                            // name, datasets.map(function(d){return d.label}))
-                            if (!(datasets.map(function(d){return d.label}).includes(name))){
-                            $.get(obsurl).then(
-                            function(obs){
-                                console.log(obs)
-                                ndata = {
-                                        label: name,
-                                        data: obs['value'].map(f=>{
-                                            var d = new Date(f['phenomenonTime'])
-                                            d.setHours(d.getHours()+6)
-                                            return [d, f['result']]
-                                        }),
-                                        borderColor: colors[iotid%10],
-                                        backgroundColor: colors[iotid%10],
-                                        tension: 0.1
-                                    }
+    $('#datastreamsinfotable').html(table)
 
 
-                                datasets.push(ndata)
-                                myChart.update()
-                            }
-                )}
-                        }
-                    }
-    )
+}
+function populateDatastreamInfoTable(ds){
+    let iotid = ds['@iot.id']
+    let name = ds['name']
+    let properties = ds['properties']
+    $('#datastreaminfotable').html(makeInfoContent( iotid, name, properties))
+}
+
+function populateThingInfoTable(thing){
+    let iotid = thing['@iot.id']
+    let name = thing['name']
+    let properties = thing['properties']
+
+    $('#thinginfotable').html(makeInfoContent(iotid, name, properties))
+}
+
+function populateLocationInfoTable(iotid, name, properties){
+    $('#locationinfotable').html(makeInfoContent(iotid, name, properties ))
+}
+
+function openInfo(evt, name) {
+  // Declare all variables
+  var i, tabcontent, tablinks;
+
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById(name).style.display = "block";
+  if (evt){
+    evt.currentTarget.className += " active";
+  }
+
 }

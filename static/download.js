@@ -22,11 +22,24 @@ function downloadWellMetaDataAll(){
 
 function downloadSelectedObservations(){
     console.log(myChart.data.datasets);
-    content = "name,datetime,result\r\n"
+    content = "label, locationID, locationName, Latitude, Longitude, thingID, thingName, datastreamID," +
+        " datastreamName,datetime,result,source,LocationURL\r\n"
     myChart.data.datasets.forEach(function(dataset){
         let rows = dataset.data
+        let iot = dataset.iot
         rows.forEach(function(obs){
-            let row = [dataset.label, obs[0].toISOString(), obs[1]]
+            let row = [dataset.label,
+                iot['Location']['@iot.id'],
+                iot['Location']['name'],
+                iot['Latitude'],
+                iot['Longitude'],
+                iot['Thing']['@iot.id'],
+                iot['Thing']['name'],
+                iot['Datastream']['@iot.id'],
+                iot['Datastream']['name'],
+                obs[0].toISOString(), obs[1],
+                iot['source'],
+                iot['Location']['url']]
             content+=row+"\r\n"
         })
 

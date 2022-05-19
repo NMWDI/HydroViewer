@@ -14,6 +14,7 @@ var map = L.map('map', {
 )
 map.setView([33.5, -104.5], 7);
 
+
 var layerControl = L.control.layers({"osm": osm}, null).addTo(map);
 
 var use_cluster = false;
@@ -55,6 +56,14 @@ function loadMarker(loc, color){
     marker.source =loc['source']
     marker.defaultColor = color
     marker.properties = loc['properties']
+    marker.bindPopup(loc['name'])
+    marker.on('mouseover', function(e) {
+        marker.openPopup();
+    } )
+    marker.on('mouseout', function(e) {
+        map.closePopup();
+    } )
+
     allmarkers.push(marker)
     return marker
     // markers.push(marker)
