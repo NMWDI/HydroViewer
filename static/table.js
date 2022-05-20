@@ -45,14 +45,27 @@ $(document).ready(function (){
             let locations = data['locations']
             locations.forEach(function(loc){
                 loc['id'] = loc['@iot.id']
+                loc['thingname'] = 'Well'
+
+                if(loc.source==='USGS'){
+                    console.log('asfsafdsadfsadf', loc['Things@iot.navigationLink'])
+                    // jQuery.ajaxSetup({async:false});
+                    $.ajax({url: loc['Things@iot.navigationLink'],
+                    async: false,
+                    success: function(data){
+                        loc['Things'] = data['value']
+                        loc['thingname'] = data['value'][0].properties.monitoringLocationName
+                    }})
+                }
             })
             console.log(locations)
             var dtt = table.DataTable({select: {style: 'multi'},
                             aaData: locations,
                             columns: [
-                                      {data: "id"},
+                                      // {data: "id"},
                                       {data: "name"},
                                       {data: "description"},
+                                      {data: "thingname"},
                                       {data: "source"}]})
 
             // add a button to the column
@@ -130,6 +143,16 @@ function deselectLocation(iotid, name){
 
 const colors = chroma.scale(['#eeee14','#1471a2']).mode('lch').colors(10)
 
+function hashIOTID(iotid) {
+  var hash = 0, i, chr;
+  if (iotid.length === 0) return hash;
+  for (i = 0; i < iotid.length; i++) {
+    chr   = iotid.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
 function getMarker(iotid){
     return allmarkers.filter(function (m){ return m.stid == iotid})[0]
 }
@@ -151,11 +174,17 @@ function selectLocation(iotid, name){
         make_id = function(iotid){
         return "'"+iotid+"'"
         }
+        makecolor = function(iotid){
+            return colors[hashIOTID(iotid)%10]
+        }
     }else{
         url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/"
         dsname = 'Groundwater Levels'
         make_id = function(iotid){
         return iotid
+        }
+        makecolor = function(iotid){
+            return colors[iotid%10]
         }
     }
 
@@ -199,6 +228,10 @@ function selectLocation(iotid, name){
 
                                 retrieveItems(obsurl, 10000,
                                     function(obs){
+
+
+                                    let color = makecolor(iotid)
+
                                     ndata = {
                                             iot: {'Datastream': ds,
                                                   'Thing': thing,
@@ -214,8 +247,8 @@ function selectLocation(iotid, name){
                                                 return [d, f['result']]
                                             }),
 
-                                            borderColor: colors[iotid%10],
-                                            backgroundColor: colors[iotid%10],
+                                            borderColor: color,
+                                            backgroundColor: color,
                                             tension: 0.1
                                         }
 

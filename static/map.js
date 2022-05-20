@@ -27,16 +27,16 @@ $.getJSON(sourceURL).done(
         let usgs = locations.filter(function(l){return l['source']=='USGS'})
         let ose = locations.filter(function(l){return l['source']=='OSE-Roswell'})
         let nmbgmr = locations.filter(function(l){return l['source']=='NMBGMR'})
-        loadLayer(ose, 'blue', 'OSE Roswell');
-        loadLayer(usgs, 'green', 'USGS');
-        loadLayer(nmbgmr, 'orange', 'NMGBMR');
+        loadLayer(ose, 'blue', 'OSE Roswell', false);
+        loadLayer(usgs, 'green', 'USGS', true);
+        loadLayer(nmbgmr, 'orange', 'NMGBMR', false);
     }
 )
 
-function loadLayer(ls, color, label){
+function loadLayer(ls, color, label, load_things){
     console.log('load late')
 
-        let markers = ls.map(function (loc){return loadMarker(loc, color)})
+        let markers = ls.map(function (loc){return loadMarker(loc, color, load_things)})
 
         var layer = new L.featureGroup(markers)
         map.addLayer(layer)
@@ -46,7 +46,7 @@ function loadLayer(ls, color, label){
             toggleLocation(e.layer.stid, e.layer.name)
         })
 }
-function loadMarker(loc, color){
+function loadMarker(loc, color, load_things){
     var marker = L.circleMarker([loc['location']['coordinates'][1], loc['location']['coordinates'][0], ],)
     marker.setStyle({color: color,
         fillColor: color,
@@ -56,7 +56,16 @@ function loadMarker(loc, color){
     marker.source =loc['source']
     marker.defaultColor = color
     marker.properties = loc['properties']
-    marker.bindPopup(loc['name'])
+    if (load_things){
+        $.get(loc['Things@iot.navigationLink']).then(function(data){
+              let things = data['value']
+            marker.bindPopup(loc['name']+'<br/>'+ things[0]['properties']['monitoringLocationName'])
+        })
+    }else{
+        marker.bindPopup(loc['name'])
+    }
+
+    // console.log(loc, loc['Things'])
     marker.on('mouseover', function(e) {
         marker.openPopup();
     } )
