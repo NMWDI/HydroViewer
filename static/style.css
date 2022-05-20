@@ -33,7 +33,7 @@ html, body {
 
 .vscroll {
 position: relative;
-height: 500px;
+height: 300px;
 overflow: auto;
 }
 

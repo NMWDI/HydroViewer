@@ -33,6 +33,36 @@ const myChart = new Chart(ctx, {type: 'line',
 //         $("#graphcontainer").removeClass("loading");
 //     }
 // });
+// function getRow(rows, m) {
+//     for (const j in rows) {
+//         let row = rows[j]
+//         if (row.id === m.stid) {
+//             return m
+//         }
+//     }
+// }
+
+function filterMap(e, settings){
+    let data = $('#wellstable').DataTable()
+
+    for (const i in allmarkers) {
+        let m = allmarkers[i]
+        map.removeLayer(m)
+    }
+    let rows = data.rows( { filter : 'applied'} ).data()
+    for (const i in allmarkers){
+        let m = allmarkers[i]
+        let row = rows.filter(function(r){
+            return r.id===m.stid
+        })[0]
+        if (row){
+            map.addLayer(m)
+        }
+    }
+        // m.visible = false
+        // console.log(m, m.visible)
+
+}
 
 $(document).ready(function (){
 
@@ -48,8 +78,6 @@ $(document).ready(function (){
                 loc['thingname'] = 'Well'
 
                 if(loc.source==='USGS'){
-                    console.log('asfsafdsadfsadf', loc['Things@iot.navigationLink'])
-                    // jQuery.ajaxSetup({async:false});
                     $.ajax({url: loc['Things@iot.navigationLink'],
                     async: false,
                     success: function(data){
@@ -67,7 +95,7 @@ $(document).ready(function (){
                                       {data: "description"},
                                       {data: "thingname"},
                                       {data: "source"}]})
-
+            dtt.on('search', filterMap)
             // add a button to the column
             //{data: null,
             //                                 render: function (data) {
