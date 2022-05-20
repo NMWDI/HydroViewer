@@ -14,7 +14,10 @@ const xAxis = {
                     title: {text: "Time", display: true}
                 }
 const options = {scales: {yAxis: yAxis,
-                          xAxis: xAxis}}
+                          xAxis: xAxis},
+                 animation: {
+        duration: 0
+    }}
 const myChart = new Chart(ctx, {type: 'line',
                                     data: {labels: [], datasets:[]},
         options: options
@@ -134,8 +137,6 @@ function getMarker(iotid){
 function selectLocation(iotid, name){
     console.log('location selected')
 
-    document.getElementById("progress").style.display ="flex"
-
     // hightlight points on the map
     let m = getMarker(iotid)
     if (!m){
@@ -161,7 +162,8 @@ function selectLocation(iotid, name){
     clearInfoTables()
     populateLocationInfoTable(iotid, name, m.properties)
     let locationURL = url+'Locations('+make_id(iotid)+')'
-    $.get(locationURL+'?$expand=Things/Datastreams').then(
+    console.log(locationURL+'?$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor')
+    $.get(locationURL+'?$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor').then(
                     function (data){
                         // console.log('reload data', data)
                         var thing = data['Things'][0]
@@ -182,7 +184,8 @@ function selectLocation(iotid, name){
                         var obsdtt =  $('#obstable').DataTable()
                         if (ds){
                             populateDatastreamInfoTable(ds)
-
+                            populateSensorInfoTable(ds['Sensor'])
+                            populateObservedPropertyInfoTable(ds['ObservedProperty'])
                             m.setStyle({color: 'red',fillColor: 'red'})
                             m.bringToFront();
                             var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
@@ -192,6 +195,8 @@ function selectLocation(iotid, name){
                             // console.log(!(datasets.map(function(d){return d.label}).includes(name)),
                             // name, datasets.map(function(d){return d.label}))
                             if (!(datasets.map(function(d){return d.label}).includes(name))){
+                                document.getElementById("progress").style.display ="flex"
+
                                 retrieveItems(obsurl, 10000,
                                     function(obs){
                                     ndata = {
@@ -215,12 +220,20 @@ function selectLocation(iotid, name){
                                         }
 
                                     datasets.push(ndata)
+                                        let obspropname = ds['ObservedProperty']['name']
+                                        if (obspropname==='Depth to Water Below Ground Surface'){
+                                            myChart.options.scales.yAxis.reverse = true
+                                        }else{
+                                            myChart.options.scales.yAxis.reverse = false
+                                        }
+
+                                        myChart.options.scales.yAxis.title.text=obspropname
+                                      $(obsdtt.column(1).header()).text( obspropname)
                                     myChart.update()
                                     document.getElementById("progress").style.display ="none"
                             }
                          )}
                         }
-                        document.getElementById("progress").style.display ="none"
                     }
     )
 }
@@ -287,6 +300,20 @@ function makeInfoContent(iotid, name, properties){
      return infocontent
 }
 
+function populateSTInfoTable(obj, id){
+    let iotid = obj['@iot.id']
+    let name = obj['name']
+    let properties = obj['properties']
+    $(id).html(makeInfoContent( iotid, name, properties))
+}
+function populateSensorInfoTable(obj){
+    populateSTInfoTable(obj, '#sensorinfotable')
+}
+
+function populateObservedPropertyInfoTable(obj){
+    populateSTInfoTable(obj, '#obspropinfotable')
+}
+
 function populateDatastreamsInfoTable(dss){
     let table = '';
     for (const di in dss){
@@ -303,18 +330,20 @@ function populateDatastreamsInfoTable(dss){
 
 }
 function populateDatastreamInfoTable(ds){
-    let iotid = ds['@iot.id']
-    let name = ds['name']
-    let properties = ds['properties']
-    $('#datastreaminfotable').html(makeInfoContent( iotid, name, properties))
+    // let iotid = ds['@iot.id']
+    // let name = ds['name']
+    // let properties = ds['properties']
+    // $('#datastreaminfotable').html(makeInfoContent( iotid, name, properties))
+    populateSTInfoTable(ds, '#datastreaminfotable')
 }
 
 function populateThingInfoTable(thing){
-    let iotid = thing['@iot.id']
-    let name = thing['name']
-    let properties = thing['properties']
+    // let iotid = thing['@iot.id']
+    // let name = thing['name']
+    // let properties = thing['properties']
 
-    $('#thinginfotable').html(makeInfoContent(iotid, name, properties))
+    // $('#thinginfotable').html(makeInfoContent(iotid, name, properties))
+    populateSTInfoTable(thing, '#thinginfotable')
 }
 
 function populateLocationInfoTable(iotid, name, properties){

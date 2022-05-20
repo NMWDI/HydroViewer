@@ -87,6 +87,8 @@
                     <button class="tablinks" onclick="openInfo(event, 'Location')">Location</button>
                     <button class="tablinks" onclick="openInfo(event, 'Thing')">Thing</button>
                     <button class="tablinks" onclick="openInfo(event, 'Datastream')">Datastream</button>
+                    <button class="tablinks" onclick="openInfo(event, 'ObservedProperty')">ObservedProperty</button>
+                    <button class="tablinks" onclick="openInfo(event, 'Sensor')">Sensor</button>
                 </div>
                 <div class="tabcontent", id="Location">
                     <table id="locationinfotable" class="table table-striped table-bordered table-sm">
@@ -102,6 +104,14 @@
                     </table>
                     <h4>All Datastreams</h4>
                     <table id="datastreamsinfotable" class="table table-striped table-bordered table-sm">
+                    </table>
+                </div>
+                <div class="tabcontent" id="ObservedProperty">
+                    <table id="obspropinfotable" class="table table-striped table-bordered table-sm">
+                    </table>
+                </div>
+                <div class="tabcontent" id="Sensor">
+                    <table id="sensorinfotable" class="table table-striped table-bordered table-sm">
                     </table>
                 </div>
             </div>
