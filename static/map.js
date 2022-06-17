@@ -26,10 +26,12 @@ $.getJSON(sourceURL).done(
         // var layer = new L.LayerGroup();
         let usgs = locations.filter(function(l){return l['source']=='USGS'})
         let ose = locations.filter(function(l){return l['source']=='OSE-Roswell'})
-        let nmbgmr = locations.filter(function(l){return l['source']=='NMBGMR'})
-        loadLayer(ose, 'blue', 'OSE Roswell', false);
-        loadLayer(usgs, 'green', 'USGS', true);
-        loadLayer(nmbgmr, 'orange', 'NMGBMR', false);
+        let isc_seven_rivers = locations.filter(function(l){return l['source']=='isc_seven_rivers'})
+        let nmgbmr = locations.filter(function(l){return l['source']=='NMBGMR'})
+        loadLayer(ose, 'blue', 'OSE Roswell');
+        loadLayer(nmgbmr, 'purple', 'NMBGMR');
+        loadLayer(usgs, 'green', 'USGS');
+        loadLayer(isc_seven_rivers, 'orange', 'ISC Seven Rivers');
     }
 )
 
