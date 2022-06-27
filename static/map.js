@@ -1,69 +1,64 @@
-// import * as nmbg_locations from './nmbg_locations.json'
 
-var PROJECT = 'pvacd_hydroviewer'
+//========================================================================================
+// Configuration variables
+const PROJECT = 'pvacd_hydroviewer'
+const sources = [
+        {'name': 'nmbgmr', 'label': 'NMBGMR', 'color':'purple'},
+        {'name': 'ose_roswell', 'label': 'OSE Roswell', 'color':'blue'},
+        {'name': 'isc_seven_rivers', 'label': 'ISC Seven Rivers', 'color':'orange'},
+        {'name': 'usgs', 'label': 'USGS', 'color': 'green'},
+    ]
+const center_lat = document.getElementById('center_lat').textContent
+const center_lon = document.getElementById('center_lon').textContent
+const zoom = document.getElementById('zoom').textContent
 
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//========================================================================================
+
+
+const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 })
 
-var map = L.map('map', {
+const map = L.map('map', {
         preferCanvas: true,
         updateWhenZooming: false,
         updateWhenIdle: true,
         layers: [osm]
     }
 )
-map.setView([33.5, -104.5], 7);
+
+map.setView([center_lat, center_lon], zoom);
 
 
-var layerControl = L.control.layers({"osm": osm}, null).addTo(map);
+const layerControl = L.control.layers({"osm": osm}, null).addTo(map);
+const allmarkers = [];
 
-var use_cluster = false;
-var allmarkers = [];
-
-
-var sources = [
-        {'name': 'usgs', 'label': 'USGS', 'color': 'green'},
-        {'name': 'ose_roswell', 'label': 'OSE Roswell', 'color':'blue'},
-        {'name': 'nmbgmr', 'label': 'NMBGMR', 'color':'purple'},
-        {'name': 'isc_seven_rivers', 'label': 'ISC Seven Rivers', 'color':'orange'},
-    ]
-
-//
-// $.getJSON(sourceURL).done(
-//     function (data){
-//         var locations=data['locations']
-//         // var layer = new L.LayerGroup();
-//         // let usgs = locations.filter(function(l){return l['source']=='USGS'})
-//         // let ose = locations.filter(function(l){return l['source']=='OSE-Roswell'})
-//         // let isc_seven_rivers = locations.filter(function(l){return l['source']=='isc_seven_rivers'})
-//         // let nmgbmr = locations.filter(function(l){return l['source']=='NMBGMR'})
-//         loadLayer(ose, 'blue', 'OSE Roswell');
-//         loadLayer(nmgbmr, 'purple', 'NMBGMR');
-//         loadLayer(usgs, 'green', 'USGS');
-//         loadLayer(isc_seven_rivers, 'orange', 'ISC Seven Rivers');
-//     }
-// )
-
+$.ajaxSetup({
+    async: false
+});
 function loadSource(s){
-    let url = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/'+PROJECT+'/'+s.name+'.json'
+    const url = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/'+PROJECT+'/'+s.name+'.json'
     $.getJSON(url).done(
         function(data){
             let ls = data['locations']
+            console.debug('loading source', s)
             loadLayer(ls, s.color, s.label)
         }
     )
 
 }
+
+
 sources.forEach(loadSource)
-
-
+$.ajaxSetup({
+    async: true
+});
 
 function loadLayer(ls, color, label, load_things){
-    console.log('load late')
+    console.debug('load layer')
     let markers = ls.map(function (loc){return loadMarker(loc, color, load_things)})
 
-    var layer = new L.featureGroup(markers)
+    const layer = new L.featureGroup(markers)
     map.addLayer(layer)
     layerControl.addOverlay(layer, label)
 

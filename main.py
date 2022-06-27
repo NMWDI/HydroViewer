@@ -21,6 +21,10 @@ app = Flask(__name__)
 def root():
     return render_template('index.html', title='PVACD Hydrograph Viewer')
 
+@app.route('/mywell')
+def mywell():
+    return render_template('mywell.html', title='MyWell Hydrograph Viewer')
+
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App
