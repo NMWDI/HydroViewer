@@ -1,5 +1,6 @@
 // import * as nmbg_locations from './nmbg_locations.json'
 
+var PROJECT = 'pvacd_hydroviewer'
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -20,33 +21,55 @@ var layerControl = L.control.layers({"osm": osm}, null).addTo(map);
 var use_cluster = false;
 var allmarkers = [];
 
-$.getJSON(sourceURL).done(
-    function (data){
-        var locations=data['locations']
-        // var layer = new L.LayerGroup();
-        let usgs = locations.filter(function(l){return l['source']=='USGS'})
-        let ose = locations.filter(function(l){return l['source']=='OSE-Roswell'})
-        let isc_seven_rivers = locations.filter(function(l){return l['source']=='isc_seven_rivers'})
-        let nmgbmr = locations.filter(function(l){return l['source']=='NMBGMR'})
-        loadLayer(ose, 'blue', 'OSE Roswell');
-        loadLayer(nmgbmr, 'purple', 'NMBGMR');
-        loadLayer(usgs, 'green', 'USGS');
-        loadLayer(isc_seven_rivers, 'orange', 'ISC Seven Rivers');
-    }
-)
+
+var sources = [
+        {'name': 'usgs', 'label': 'USGS', 'color': 'green'},
+        {'name': 'ose_roswell', 'label': 'OSE Roswell', 'color':'blue'},
+        {'name': 'nmbgmr', 'label': 'NMBGMR', 'color':'purple'},
+        {'name': 'isc_seven_rivers', 'label': 'ISC Seven Rivers', 'color':'orange'},
+    ]
+
+//
+// $.getJSON(sourceURL).done(
+//     function (data){
+//         var locations=data['locations']
+//         // var layer = new L.LayerGroup();
+//         // let usgs = locations.filter(function(l){return l['source']=='USGS'})
+//         // let ose = locations.filter(function(l){return l['source']=='OSE-Roswell'})
+//         // let isc_seven_rivers = locations.filter(function(l){return l['source']=='isc_seven_rivers'})
+//         // let nmgbmr = locations.filter(function(l){return l['source']=='NMBGMR'})
+//         loadLayer(ose, 'blue', 'OSE Roswell');
+//         loadLayer(nmgbmr, 'purple', 'NMBGMR');
+//         loadLayer(usgs, 'green', 'USGS');
+//         loadLayer(isc_seven_rivers, 'orange', 'ISC Seven Rivers');
+//     }
+// )
+
+function loadSource(s){
+    let url = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/'+PROJECT+'/'+s.name+'.json'
+    $.getJSON(url).done(
+        function(data){
+            let ls = data['locations']
+            loadLayer(ls, s.color, s.label)
+        }
+    )
+
+}
+sources.forEach(loadSource)
+
+
 
 function loadLayer(ls, color, label, load_things){
     console.log('load late')
+    let markers = ls.map(function (loc){return loadMarker(loc, color, load_things)})
 
-        let markers = ls.map(function (loc){return loadMarker(loc, color, load_things)})
+    var layer = new L.featureGroup(markers)
+    map.addLayer(layer)
+    layerControl.addOverlay(layer, label)
 
-        var layer = new L.featureGroup(markers)
-        map.addLayer(layer)
-        layerControl.addOverlay(layer, label)
-
-        layer.on('click', function(e){
-            toggleLocation(e.layer.stid, e.layer.name)
-        })
+    layer.on('click', function(e){
+        toggleLocation(e.layer.stid, e.layer.name)
+    })
 }
 function loadMarker(loc, color, load_things){
     var marker = L.circleMarker([loc['location']['coordinates'][1], loc['location']['coordinates'][0], ],)
@@ -55,6 +78,7 @@ function loadMarker(loc, color, load_things){
         radius: 4})
     marker.stid = loc['@iot.id']
     marker.name = loc['name']
+    // console.log('lasdfasdf', loc['source'], loc)
     marker.source =loc['source']
     marker.defaultColor = color
     marker.properties = loc['properties']

@@ -18,46 +18,78 @@ import json
 import requests
 
 
-def make_locations(url, out, source):
+def make_locations(url, out, source, as_csv=False, datastream_filter=True):
     print(url)
     jobj = requests.get(url)
     print(jobj)
-    with open('{}.json'.format(out), 'w') as wfile:
-
-        obj = {}
-        # print(jobj)
-        # for ji in jobj.json()['value']:
-        #     locations.append({'@iot.id': ji['@iot.id'], 'name': ji['']})
+    if as_csv:
         locations = jobj.json()['value']
-        for l in locations:
-            l['source'] = source
-        obj['locations'] =  locations
-        json.dump(obj, wfile, indent=2)
+        with open('{}.csv'.format(out), 'w') as wfile:
+            for l in locations:
+                c = l['location']['coordinates']
+                row = ','.join([l['name'], str(c[1]), str(c[0])])
+                row = '{}\n'.format(row)
+                wfile.write(row)
+
+    else:
+        with open('{}.json'.format(out), 'w') as wfile:
+
+            obj = {}
+            # print(jobj)
+            # for ji in jobj.json()['value']:
+            #     locations.append({'@iot.id': ji['@iot.id'], 'name': ji['']})
+            locations = jobj.json()['value']
+            nlocations = []
+
+            n = len(locations)
+            for i, l in enumerate(locations):
+                print('i={}/{}'.format(i, n))
+                for thing in l['Things']:
+                    for ds in thing['Datastreams']:
+                        if not datastream_filter or ds['name'] == 'Groundwater Levels':
+                            l['source'] = source
+                            nlocations.append(l)
+
+            print(len(nlocations))
+            obj['locations'] = nlocations
+            json.dump(obj, wfile, indent=2)
+
+
+def make_st_agency(base_url, out, agency, bounds=None, filter_by_agency=True, **kw):
+    fs = []
+    if filter_by_agency:
+        fs.append(f'properties/agency%20eq%20%27{agency}%27')
+    if bounds:
+        points = ','.join(bounds)
+        fs.append(f"st_within(Location/location, geography'POLYGON (({points}))')")
+    f = ' and '.join(fs)
+
+    url = f'{base_url}Locations?$orderby=id&' \
+          f'$filter={f}' \
+          '&$expand=Things/Datastreams'
+
+    make_locations(url, out, agency, **kw)
 
 
 if __name__ == '__main__':
-    url = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations?$orderby=id&$filter=properties/agency%20eq%20%27OSE-Roswell%27'
-    out = 'ose_roswell'
-    make_locations(url, out, 'OSE-Roswell')
-    # points = ['-105.70 34.73', '-103.05 34.73',
-    #           '-105.70 32.3',  '-103.05 32.3',
-    #           '-105.70 34.73'
-    #           ]
-    # points = ','.join(points)
-
+    st2 = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/'
+    usgs = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
+    # make_st_agency(st2, 'ose_roswell', 'OSE-Roswell')
+    # make_st_agency(st2, 'isc_seven_rivers', 'ISC_SEVEN_RIVERS')
+    #
     points = ['-105.70 34.73', '-103.05 34.73',
               '-105.70 32.3',  '-103.05 32.3',
               '-105.70 34.73'
               ]
-    points = ','.join(points)
-    url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations?$filter=properties/agency eq 'NMBGMR' and " \
-          "st_within(" \
-          "Location/location, " \
-          "geography'POLYGON (({" \
-          "}))')".format(points)
+    # make_st_agency(st2, 'nmbgmr', 'NMBGMR', points)
 
-    out = 'nmbgmr'
-    make_locations(url, out, 'NMBGMR')
-    # out = 'usgs_pvacd'
-    # make_locations(url, out, 'USGS')
+    make_st_agency(usgs, 'usgs', 'USGS', filter_by_agency=False,
+                   bounds=points, datastream_filter=False)
+    # url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations?$filter=properties/agency eq 'NMBGMR' and " \
+    #       "st_within(" "Location/location, geography'POLYGON (({" "}))')&$expand=Things/Datastreams".format(points)
+
+    # out = 'nmbgmr'
+    # make_locations(url, out, 'NMBGMR')
+    # # out = 'usgs_pvacd'
+    # # make_locations(url, out, 'USGS')
 # ============= EOF =============================================

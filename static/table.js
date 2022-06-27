@@ -196,6 +196,7 @@ function selectLocation(iotid, name){
 
     let url;
     let dsname;
+
     if (m.source=='USGS'){
         url = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
         dsname = ''
