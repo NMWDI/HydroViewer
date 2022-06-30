@@ -7,10 +7,11 @@ const sources = [
         {'name': 'ose_roswell', 'label': 'OSE Roswell', 'color':'blue'},
         {'name': 'isc_seven_rivers', 'label': 'ISC Seven Rivers', 'color':'orange'},
         {'name': 'usgs', 'label': 'USGS', 'color': 'green'},
+        {'name': 'pvacd_hydrovu', 'label': 'PVACD', 'color': 'yellow'},
     ]
-const center_lat = document.getElementById('center_lat').textContent
-const center_lon = document.getElementById('center_lon').textContent
-const zoom = document.getElementById('zoom').textContent
+// const center_lat = document.getElementById('center_lat').textContent
+// const center_lon = document.getElementById('center_lon').textContent
+// const zoom = document.getElementById('zoom').textContent
 
 //========================================================================================
 
@@ -27,36 +28,40 @@ const map = L.map('map', {
     }
 )
 
-map.setView([center_lat, center_lon], zoom);
-
-
 const layerControl = L.control.layers({"osm": osm}, null).addTo(map);
 const allmarkers = [];
 
-$.ajaxSetup({
+
+let MAP_CFG;
+function mapInit(cfg){
+    MAP_CFG = cfg;
+    map.setView([cfg.center_lat, cfg.center_lon], cfg.zoom);
+    $.ajaxSetup({
     async: false
-});
-function loadSource(s){
-    const url = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/'+PROJECT+'/'+s.name+'.json'
-    $.getJSON(url).done(
-        function(data){
-            let ls = data['locations']
-            console.debug('loading source', s)
-            loadLayer(ls, s.color, s.label)
-        }
-    )
+    });
+    function loadSource(s){
+        const url = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/'+PROJECT+'/'+s.name+'.json'
+        $.getJSON(url).done(
+            function(data){
+                let ls = data['locations']
+                console.debug('loading source', s)
+                loadLayer(ls, s.color, s.label)
+            }
+        )
 
+    }
+    sources.forEach(loadSource)
+    $.ajaxSetup({
+        async: true
+    });
 }
-
-
-sources.forEach(loadSource)
-$.ajaxSetup({
-    async: true
-});
 
 function loadLayer(ls, color, label, load_things){
     console.debug('load layer')
-    let markers = ls.map(function (loc){return loadMarker(loc, color, load_things)})
+
+    let mywell_id = MAP_CFG.mywell_id
+    let markers = ls.map(function (loc){return loadMarker(loc, color, load_things, mywell_id
+    )})
 
     const layer = new L.featureGroup(markers)
     map.addLayer(layer)
@@ -66,16 +71,28 @@ function loadLayer(ls, color, label, load_things){
         toggleLocation(e.layer.stid, e.layer.name)
     })
 }
-function loadMarker(loc, color, load_things){
+function loadMarker(loc, color, load_things, mywell_id){
     var marker = L.circleMarker([loc['location']['coordinates'][1], loc['location']['coordinates'][0], ],)
-    marker.setStyle({color: color,
+
+    console.log('asdfasfd', mywell_id)
+
+    if (mywell_id && loc['@iot.id'] == mywell_id){
+        marker.defaultColor = 'black'
+        color = 'black'
+        marker.setStyle({color: color,
+        fillColor: color,
+        radius: 10})
+    }
+    else{
+        marker.defaultColor = color
+        marker.setStyle({color: color,
         fillColor: color,
         radius: 4})
+    }
     marker.stid = loc['@iot.id']
     marker.name = loc['name']
     // console.log('lasdfasdf', loc['source'], loc)
     marker.source =loc['source']
-    marker.defaultColor = color
     marker.properties = loc['properties']
     if (load_things){
         $.get(loc['Things@iot.navigationLink']).then(function(data){

@@ -14,16 +14,30 @@
 # limitations under the License.
 #
 from flask import Flask, render_template
+
 app = Flask(__name__)
 
 
 @app.route('/')
 def root():
-    return render_template('index.html', title='PVACD Hydrograph Viewer')
+    cfg = {"center_lat": 33.5,
+           "center_lon": -104.5,
+           "zoom": 7}
+    return render_template('index.html',
+                           map_cfg=cfg,
+                           title='PVACD Hydrograph Viewer')
+
 
 @app.route('/mywell')
 def mywell():
-    return render_template('mywell.html', title='MyWell Hydrograph Viewer')
+    cfg = {"center_lat": 32.5551493,
+           "center_lon": -104.4467543,
+           "zoom": 12,
+           "mywell_id": 8807,
+           "mywell_name": 'OW-2'}
+    return render_template('mywell.html',
+                           map_cfg=cfg,
+                           title='MyWell Hydrograph Viewer')
 
 
 if __name__ == '__main__':

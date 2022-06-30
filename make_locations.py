@@ -76,15 +76,17 @@ if __name__ == '__main__':
     usgs = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
     # make_st_agency(st2, 'ose_roswell', 'OSE-Roswell')
     # make_st_agency(st2, 'isc_seven_rivers', 'ISC_SEVEN_RIVERS')
-    #
-    points = ['-105.70 34.73', '-103.05 34.73',
-              '-105.70 32.3',  '-103.05 32.3',
-              '-105.70 34.73'
-              ]
-    # make_st_agency(st2, 'nmbgmr', 'NMBGMR', points)
+    make_st_agency(st2, 'pvacd_hydrovu', 'PVACD')
 
-    make_st_agency(usgs, 'usgs', 'USGS', filter_by_agency=False,
-                   bounds=points, datastream_filter=False)
+    #
+    # points = ['-105.70 34.73', '-103.05 34.73',
+    #           '-105.70 32.3',  '-103.05 32.3',
+    #           '-105.70 34.73'
+    #           ]
+    # # make_st_agency(st2, 'nmbgmr', 'NMBGMR', points)
+    #
+    # make_st_agency(usgs, 'usgs', 'USGS', filter_by_agency=False,
+    #                bounds=points, datastream_filter=False)
     # url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations?$filter=properties/agency eq 'NMBGMR' and " \
     #       "st_within(" "Location/location, geography'POLYGON (({" "}))')&$expand=Things/Datastreams".format(points)
 
