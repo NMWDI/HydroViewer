@@ -16,6 +16,16 @@ const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 })
 
+const macrostrat = L.tileLayer('http://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', {
+attribution: '&copy; <a href="https://macrostrat.org">MacroStrat</a> contributors'
+})
+
+const opentopo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)\''
+})
+
+const esri_wi = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'})
 const map = L.map('map', {
         preferCanvas: true,
         updateWhenZooming: false,
@@ -24,11 +34,25 @@ const map = L.map('map', {
     }
 )
 
-const layerControl = L.control.layers({"osm": osm}, null).addTo(map);
+const layerControl = L.control.layers({"OpenStreetMap": osm,
+    'MacroStrat': macrostrat,
+    'OpenTopo': opentopo,
+    "ESRI World Imagery": esri_wi
+    }, null).addTo(map);
 const allmarkers = [];
 
 
 let MAP_CFG;
+function ResetSelection(){
+     myChart.data.datasets = [];
+     myChart.update()
+    allmarkers.forEach(function (m){
+            m.setStyle({color: m.defaultColor,
+                             fillColor: m.defaultColor})
+    })
+
+}
+
 function mapInit(cfg){
     MAP_CFG = cfg;
     map.setView([cfg.center_lat, cfg.center_lon], cfg.zoom);
