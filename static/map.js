@@ -9,10 +9,6 @@ const sources = [
         {'name': 'usgs', 'label': 'USGS', 'color': 'green'},
         {'name': 'pvacd_hydrovu', 'label': 'PVACD', 'color': 'yellow'},
     ]
-// const center_lat = document.getElementById('center_lat').textContent
-// const center_lon = document.getElementById('center_lon').textContent
-// const zoom = document.getElementById('zoom').textContent
-
 //========================================================================================
 
 
@@ -51,11 +47,34 @@ function mapInit(cfg){
 
     }
     sources.forEach(loadSource)
+    loadLegend()
+
     $.ajaxSetup({
         async: true
     });
 }
+function loadLegend(){
+    var legend = L.control({position: 'bottomleft'});
+    legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        labels = ['<strong>Sources</strong>']
+        // categories = ['Road Surface','Signage','Line Markings','Roadside Hazards','Other'];
 
+        for (var i = 0; i < sources.length; i++) {
+            labels.push(
+                // '<i style="background: ' + sources[i].color + '">' + sources[i].label + '</i>')
+                '<i class="circle" style="background: ' + sources[i].color + '"></i>' + sources[i].label)
+                // (sources[i].display_name ? sources[i].display_name : '+'));
+        }
+
+        div.innerHTML = labels.join('<br>');
+        console.log(div.innerHTML)
+        return div;
+    };
+
+    legend.addTo(map);
+
+}
 function loadLayer(ls, color, label, load_things){
     console.debug('load layer')
 
