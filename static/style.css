@@ -184,3 +184,7 @@ table th {
   border-radius: 50%;
   display: inline-block;
 }
+
+.panelabel {
+  text-align: center;
+}

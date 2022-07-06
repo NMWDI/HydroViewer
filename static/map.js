@@ -54,20 +54,16 @@ function mapInit(cfg){
     });
 }
 function loadLegend(){
-    var legend = L.control({position: 'bottomleft'});
+    let legend = L.control({position: 'bottomright'});
     legend.onAdd = function (map) {
-        var div = L.DomUtil.create('div', 'info legend');
-        labels = ['<strong>Sources</strong>']
-        // categories = ['Road Surface','Signage','Line Markings','Roadside Hazards','Other'];
+        let div = L.DomUtil.create('div', 'info legend');
+        let lines = ['<strong>Sources</strong>']
+        sources.forEach(s=>{
+            lines.push(
+                '<i class="circle" style="background: ' + s.color + '"></i> ' + s.label)
+        })
 
-        for (var i = 0; i < sources.length; i++) {
-            labels.push(
-                // '<i style="background: ' + sources[i].color + '">' + sources[i].label + '</i>')
-                '<i class="circle" style="background: ' + sources[i].color + '"></i>' + sources[i].label)
-                // (sources[i].display_name ? sources[i].display_name : '+'));
-        }
-
-        div.innerHTML = labels.join('<br>');
+        div.innerHTML = '<div style="background: white; padding: 5px">'+ lines.join('<br>') +'</div>';
         console.log(div.innerHTML)
         return div;
     };
@@ -84,7 +80,9 @@ function loadLayer(ls, color, label, load_things){
 
     const layer = new L.featureGroup(markers)
     map.addLayer(layer)
-    layerControl.addOverlay(layer, label)
+    layerControl.addOverlay(layer, '<span class="circle" style="background: ' +
+        color+'"></span> ' +
+        label)
 
     layer.on('click', function(e){
         toggleLocation(e.layer.stid, e.layer.name)
@@ -92,8 +90,6 @@ function loadLayer(ls, color, label, load_things){
 }
 function loadMarker(loc, color, load_things, mywell_id){
     var marker = L.circleMarker([loc['location']['coordinates'][1], loc['location']['coordinates'][0], ],)
-
-    console.log('asdfasfd', mywell_id)
 
     if (mywell_id && loc['@iot.id'] == mywell_id){
         marker.defaultColor = 'black'

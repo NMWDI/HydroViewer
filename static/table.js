@@ -65,29 +65,42 @@ function filterMap(e, settings){
 }
 
 $(document).ready(function (){
-
     $('#progress').hide()
+    $.ajaxSetup({
+    async: false
+    });
+    let locations = []
+    function loadSource(s){
+        const url = 'https://raw.githubusercontent.com/NMWDI/VocabService/main/'+PROJECT+'/'+s.name+'.json'
+        $.getJSON(url).done(
+            function(data){
+                let ls = data['locations']
+                locations = locations.concat(ls)
+            }
+        )
+    }
+    sources.forEach(loadSource)
+    $.ajaxSetup({
+            async: true
+        });
+    var table = $('#wellstable')
+    console.log("got wells", locations.length)
 
-    $.getJSON(sourceURL)
-        .done(function (data) {
-            var table = $('#wellstable')
-            console.log("got wells")
-            let locations = data['locations']
-            locations.forEach(function(loc){
-                loc['id'] = loc['@iot.id']
-                loc['thingname'] = 'Well'
+    locations.forEach(function(loc){
+        loc['id'] = loc['@iot.id']
+        loc['thingname'] = 'Well'
 
-                if(loc.source==='USGS'){
-                    $.ajax({url: loc['Things@iot.navigationLink'],
-                    async: false,
-                    success: function(data){
-                        loc['Things'] = data['value']
-                        loc['thingname'] = data['value'][0].properties.monitoringLocationName
-                    }})
-                }
-            })
-            console.log(locations)
-            var dtt = table.DataTable({select: {style: 'multi'},
+        if(loc.source==='USGS'){
+            $.ajax({url: loc['Things@iot.navigationLink'],
+            async: false,
+            success: function(data){
+                loc['Things'] = data['value']
+                loc['thingname'] = data['value'][0].properties.monitoringLocationName
+            }})
+        }
+    })
+
+    var dtt = table.DataTable({select: {style: 'multi'},
                             aaData: locations,
                             columns: [
                                       // {data: "id"},
@@ -95,47 +108,48 @@ $(document).ready(function (){
                                       {data: "description"},
                                       {data: "thingname"},
                                       {data: "source"}]})
-            dtt.on('search', filterMap)
-            // add a button to the column
-            //{data: null,
-            //                                 render: function (data) {
-            //                             return `<div class="text-center">
-            //                             <a class='btn  btn-primary' onclick="AddToCart(${data})" >
-            //                                <i class='far fa-trash-alt'></i> Delete
-            //                             </a></div>`}},
-            var obstable = $('#obstable')
-            var obsdtt = obstable.DataTable({
-                        ajax: {url:'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Observations?$top=1',
-                               cache: true,
-                               dataSrc: "value"
-                        },
-                        columns: [{data: 'phenomenonTime'},
-                                  {data: 'result'}]
-                        });
-            dtt.on('deselect', function ( e, dt, type, indexes ){
-                if ( type === 'row' ) {
-                var iotid = dtt.rows( indexes ).data().pluck( 'id' )[0];
-                var name = dtt.rows( indexes ).data().pluck( 'name' )[0];
+    dtt.on('search', filterMap)
+    // add a button to the column
+    //{data: null,
+    //                                 render: function (data) {
+    //                             return `<div class="text-center">
+    //                             <a class='btn  btn-primary' onclick="AddToCart(${data})" >
+    //                                <i class='far fa-trash-alt'></i> Delete
+    //                             </a></div>`}},
+    var obstable = $('#obstable')
+    var obsdtt = obstable.DataTable({
+                ajax: {url:'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Observations?$top=1',
+                       cache: true,
+                       dataSrc: "value"
+                },
+                columns: [{data: 'phenomenonTime'},
+                          {data: 'result'}]
+                });
+    dtt.on('deselect', function ( e, dt, type, indexes ){
+        if ( type === 'row' ) {
+        var iotid = dtt.rows( indexes ).data().pluck( 'id' )[0];
+        var name = dtt.rows( indexes ).data().pluck( 'name' )[0];
 
-                deselectLocation(iotid, name)
-                }
-            });
+        deselectLocation(iotid, name)
+        }
+    });
 
-            dtt.on( 'select', function ( e, dt, type, indexes ) {
-                if ( type === 'row' ) {
-                var iotid = dtt.rows( indexes ).data().pluck( 'id' )[0];
-                var name = dtt.rows( indexes ).data().pluck( 'name' )[0];
+    dtt.on( 'select', function ( e, dt, type, indexes ) {
+        if ( type === 'row' ) {
+        var iotid = dtt.rows( indexes ).data().pluck( 'id' )[0];
+        var name = dtt.rows( indexes ).data().pluck( 'name' )[0];
 
-                selectLocation(iotid, name)
-                }
-            });
-        })
+        selectLocation(iotid, name)
+        }
+    })
 })
-function AddToCart(id){
-            alert(id);
-            $('#lblID').val(id);
-            $('#deleteConfirmationModal').modal('show');
-}
+
+//
+// function AddToCart(id){
+//             alert(id);
+//             $('#lblID').val(id);
+//             $('#deleteConfirmationModal').modal('show');
+// }
 
 function toggleLocation(iotid, name){
     if (myChart.data.datasets.map(function(d){
