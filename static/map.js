@@ -39,8 +39,36 @@ const layerControl = L.control.layers({"OpenStreetMap": osm,
     'OpenTopo': opentopo,
     "ESRI World Imagery": esri_wi
     }, null).addTo(map);
+
+new L.Control.Draw({
+    draw: {
+        rectangle: true,
+        polyline: false,
+        circle: false,
+        polygon: false,
+        circlemarker: false,
+        marker: false
+    },
+    edit: false
+}).addTo(map);
+
 const allmarkers = [];
 
+L.Rectangle.include({
+    contains: function (latLng) {
+        return this.getBounds().contains(latLng);
+    }
+});
+
+map.on(L.Draw.Event.CREATED, function (e) {
+    let selected = allmarkers.filter(function(marker){
+        return map.hasLayer(marker) && e.layer.contains(marker.getLatLng())
+    })
+    selected.forEach(function(s){
+        selectLocation(s.stid, s.name)
+    })
+
+});
 
 let MAP_CFG;
 function ResetSelection(){
