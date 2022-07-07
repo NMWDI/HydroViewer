@@ -1,10 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Info</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
 Select a location on the map or search for in the Location table and select a row
-</body>
-</html>
+
+<h3>Sources</h3>
+<ul>
+    <li>NMBGMR <a href='https://st2.newmexicowaterdata.org/FROST-Server/v1.1'>ST2</a></li>
+    <li>OSE Roswell <a href='https://st2.newmexicowaterdata.org/FROST-Server/v1.1'>ST2</a></li>
+    <li>ISC Seven Rivers <a href='https://st2.newmexicowaterdata.org/FROST-Server/v1.1'>ST2</a></li>
+    <li>PVACD <a href='https://st2.newmexicowaterdata.org/FROST-Server/v1.1'>ST2</a></li>
+    <li>USGS <a href='https://labs.waterdata.usgs.gov/sta/v1.1/'>USGS ST</a></li>
+</ul>
+
+{% endblock %}

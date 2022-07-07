@@ -12,7 +12,6 @@ function downloadWellMetaDataAll(){
                 loc['location']['coordinates'][1], loc['location']['coordinates'][0], ]
             content+= row +"\r\n"
             }
-
         )
         downloadFile('AllWellMetaData.csv', content)
     })
@@ -27,12 +26,13 @@ function downloadSelectedObservations(){
     myChart.data.datasets.forEach(function(dataset){
         let rows = dataset.data
         let iot = dataset.iot
+        console.log(iot)
         rows.forEach(function(obs){
             let row = [dataset.label,
                 iot['Location']['@iot.id'],
                 iot['Location']['name'],
-                iot['Latitude'],
-                iot['Longitude'],
+                iot['Location']['location']['coordinates'][1],
+                iot['Location']['location']['coordinates'][0],
                 iot['Thing']['@iot.id'],
                 iot['Thing']['name'],
                 iot['Datastream']['@iot.id'],
@@ -45,7 +45,7 @@ function downloadSelectedObservations(){
 
     })
     console.log(content)
-    downloadFile('Results', content)
+    downloadFile('Results.csv', content)
 }
 
 
