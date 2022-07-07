@@ -115,6 +115,9 @@ table th {
   height: 60px;
   width: 60px;
   margin: auto;
+  top: 50%;
+  right: 50%;
+  /*width: 100%;*/
   display: flex;
   position: absolute;
   -webkit-animation: rotation .6s infinite linear;
