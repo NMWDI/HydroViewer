@@ -28,6 +28,11 @@ def root():
                            title='PVACD Hydrograph Viewer')
 
 
+@app.route('/info')
+def info():
+    return render_template('info.html')
+
+
 @app.route('/mywell')
 def mywell():
     cfg = {"center_lat": 32.5551493,

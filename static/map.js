@@ -159,7 +159,7 @@ function loadMarker(loc, color, load_things, mywell_id){
     marker.stid = loc['@iot.id']
     marker.name = loc['name']
     // console.log('lasdfasdf', loc['source'], loc)
-    marker.source =loc['source']
+    marker.source = loc['source']
     marker.properties = loc['properties']
     if (load_things){
         $.get(loc['Things@iot.navigationLink']).then(function(data){
@@ -167,7 +167,7 @@ function loadMarker(loc, color, load_things, mywell_id){
             marker.bindPopup(loc['name']+'<br/>'+ things[0]['properties']['monitoringLocationName'])
         })
     }else{
-        marker.bindPopup(loc['name'])
+        marker.bindPopup(loc['name']+'<br/>'+ loc['source'])
     }
 
     // console.log(loc, loc['Things'])

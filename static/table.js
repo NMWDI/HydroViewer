@@ -65,7 +65,9 @@ function filterMap(e, settings){
 }
 
 $(document).ready(function (){
-    $('#progress').hide()
+    $('#chartprogress').hide()
+    $('#locationprogress').show()
+
     $.ajaxSetup({
     async: false
     });
@@ -80,6 +82,7 @@ $(document).ready(function (){
         )
     }
     sources.forEach(loadSource)
+
     $.ajaxSetup({
             async: true
         });
@@ -118,11 +121,12 @@ $(document).ready(function (){
     //                             </a></div>`}},
     var obstable = $('#obstable')
     var obsdtt = obstable.DataTable({
-                ajax: {url:'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Observations?$top=1',
+                ajax: {url:'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Observations?$top=0',
                        cache: true,
                        dataSrc: "value"
                 },
-                columns: [{data: 'phenomenonTime'},
+                columns: [{data: 'phenomenonTime',
+                        label: 'Time'},
                           {data: 'result'}]
                 });
     dtt.on('deselect', function ( e, dt, type, indexes ){
@@ -142,6 +146,8 @@ $(document).ready(function (){
         selectLocation(iotid, name)
         }
     })
+    $('#locationprogress').hide()
+
 })
 
 //
@@ -235,6 +241,8 @@ function selectLocation(iotid, name){
     populateLocationInfoTable(iotid, name, m.properties)
     let locationURL = url+'Locations('+make_id(iotid)+')'
     console.log(locationURL+'?$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor')
+    $('#chartprogress').show()
+
     $.get(locationURL+'?$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor').then(
                     function (data){
                         // console.log('reload data', data)
@@ -263,18 +271,12 @@ function selectLocation(iotid, name){
                             var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
                             obsdtt.ajax.url(obsurl)
                             obsdtt.ajax.reload()
-                             var datasets = myChart.data.datasets
-                            // console.log(!(datasets.map(function(d){return d.label}).includes(name)),
-                            // name, datasets.map(function(d){return d.label}))
-                            if (!(datasets.map(function(d){return d.label}).includes(name))){
-                                document.getElementById("progress").style.display ="flex"
+                            var datasets = myChart.data.datasets
 
+                            if (!(datasets.map(function(d){return d.label}).includes(name))){
                                 retrieveItems(obsurl, 10000,
                                     function(obs){
-
-
                                     let color = makecolor(iotid)
-
                                     ndata = {
                                             iot: {'Datastream': ds,
                                                   'Thing': thing,
@@ -289,7 +291,6 @@ function selectLocation(iotid, name){
                                                 d.setHours(d.getHours()+6)
                                                 return [d, f['result']]
                                             }),
-
                                             borderColor: color,
                                             backgroundColor: color,
                                             tension: 0.1
@@ -306,7 +307,8 @@ function selectLocation(iotid, name){
                                         myChart.options.scales.yAxis.title.text=obspropname
                                       $(obsdtt.column(1).header()).text( obspropname)
                                     myChart.update()
-                                    document.getElementById("progress").style.display ="none"
+                                    // document.getElementById("chartprogress").style.display ="none"
+                                        $('#chartprogress').hide()
                             }
                          )}
                         }
