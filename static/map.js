@@ -64,6 +64,12 @@ map.on(L.Draw.Event.CREATED, function (e) {
     let selected = allmarkers.filter(function(marker){
         return map.hasLayer(marker) && e.layer.contains(marker.getLatLng())
     })
+
+    if (selected.length>20){
+        alert('You have selected '+ selected.length +' locations. The maximum number is 20')
+        return
+    }
+
     selected.forEach(function(s){
         selectLocation(s.stid, s.name)
     })
