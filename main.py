@@ -33,6 +33,11 @@ def info():
     return render_template('info.html')
 
 
+@app.route('/mychart')
+def mychart():
+    return render_template('mychart.html')
+
+
 @app.route('/mywell')
 def mywell():
     cfg = {"center_lat": 32.5551493,

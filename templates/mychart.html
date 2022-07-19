@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@0.1.1"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <form id="form">
+            <label for="dsiot">Datastream</label><input type="text" id="dsiot">
+            <button id="submit">Submit</button>
+            <button id="clear">Clear</button>
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 rounded">
+            <h4 class="panelabel">Chart</h4>
+            <div id="mychartprogress">
+                <div class="w-flex h-flex justify-content-center align-items-center">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            <canvas id="mygraph"></canvas>
+        </div>
+        <div class="col-lg-6 rounded">
+            <h4 class="panelabel">Observations</h4>
+            <table id="obstable" class="table table-striped table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>PhenomenonTime</th>
+                        <th>Depth to Water (ft bgs)</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='mychart.js') }}"></script>
+    <script src="{{ url_for('static', filename='util.js') }}"></script>
+{% endblock %}

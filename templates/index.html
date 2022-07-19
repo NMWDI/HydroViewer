@@ -42,12 +42,12 @@
 {#        <div class="row">#}
 {#            <h1>{{ title }}</h1>#}
 {#        </div>#}
-        <div class="row">
-{#            <button onclick="downloadWellMetaDataAll()">DownloadAll</button>#}
-            <button onclick="downloadSelectedObservations()">DownloadSelectedObservations</button>
-            <button onclick="ResetSelection()">Reset</button>
 
-        </div>
+{#            <button onclick="downloadWellMetaDataAll()">DownloadAll</button>#}
+    <button type='button' class="btn btn-primary" onclick="downloadSelectedObservations()">
+        DownloadSelectedObservations</button>
+    <button type='button' class="btn btn-primary" onclick="ResetSelection()">Reset</button>
+
         <div class="row">
             <div class="col-lg-4 rounded">
                 <div id="map"></div>
@@ -137,6 +137,7 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='util.js') }}"></script>
     <script src="{{ url_for('static', filename='download.js') }}">
     </script>
 
@@ -148,6 +149,7 @@
 
     <script src="{{ url_for('static', filename='map.js') }}">
     </script>
+
     <script>
         mapInit({{ map_cfg|tojson }})
     </script>
