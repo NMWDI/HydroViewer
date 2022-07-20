@@ -38,6 +38,10 @@ def mychart():
     return render_template('mychart.html')
 
 
+@app.route('/datasets')
+def datasets():
+    return render_template('datasets.html')
+
 @app.route('/mywell')
 def mywell():
     cfg = {"center_lat": 32.5551493,

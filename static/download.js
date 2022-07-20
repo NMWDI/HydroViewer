@@ -1,3 +1,50 @@
+
+function downloadNMGMRWells(){
+    let url = ST2_URL + '/Locations?$filter=properties/agency eq \'NMBGMR\''
+    retrieveItems(url, -1, rows=>{
+        let content = "@iot.id,name,description,latitude,longitude\r\n"
+        rows.forEach(function(loc){
+            let row = [loc['@iot.id'], loc['name'], loc['description'],
+                loc['location']['coordinates'][1], loc['location']['coordinates'][0], ]
+            content+= row +"\r\n"
+            }
+        )
+        downloadFile("NMBGMRWells.csv", content)
+    })
+
+}
+
+function downloadNMBGMRMostRecentWaterLevels(){
+    $('#downloadprogress').show()
+
+    let url = ST2_URL + "/Locations?$filter=properties/agency eq 'NMBGMR'" +
+        "&$expand=Things/Datastreams($filter=name eq 'Groundwater Levels'; $expand=Observations($top=1; $orderby=phenomenonTime desc))"
+
+    retrieveItems(url, 100, rows=>{
+        let content = "@iot.id,name,description,latitude,longitude,altitude,geologic_formation,phenomenonTime,DepthToGroundWater_ftbgs,\r\n"
+
+        rows.forEach(function(loc){
+            let thing = loc['Things'][0]
+            let ds = thing['Datastreams'][0]
+            if (ds){
+                let obs = ds['Observations'][0]
+                let row = [loc['@iot.id'], loc['name'], loc['description'],
+                loc['location']['coordinates'][1], loc['location']['coordinates'][0],
+                    loc['properties']['Altitude'], thing['properties']['GeologicFormation'],
+                    obs['phenomenonTime'], obs['result']
+                ]
+                content+= row +"\r\n"
+            }
+
+
+            }
+        )
+
+        downloadFile("NMBGMRMostRecentWaterLevels.csv", content)
+        $('#downloadprogress').hide()
+    })
+
+}
 function downloadWellMetaDataAll(){
     console.log('donwload all')
 
@@ -6,7 +53,7 @@ function downloadWellMetaDataAll(){
     $.getJSON(sourceURL).done(function (data){
         var rows = data['locations']
 
-        content = "@iot.id,name,description,latitude,longitude\r\n"
+        let content = "@iot.id,name,description,latitude,longitude\r\n"
         rows.forEach(function(loc){
             let row = [loc['@iot.id'], loc['name'], loc['description'],
                 loc['location']['coordinates'][1], loc['location']['coordinates'][0], ]
@@ -21,7 +68,7 @@ function downloadWellMetaDataAll(){
 
 function downloadSelectedObservations(){
     console.log(myChart.data.datasets);
-    content = "label, locationID, locationName, Latitude, Longitude, thingID, thingName, datastreamID," +
+    let content = "label, locationID, locationName, Latitude, Longitude, thingID, thingName, datastreamID," +
         " datastreamName,datetime,result,source,LocationURL\r\n"
     myChart.data.datasets.forEach(function(dataset){
         let rows = dataset.data
