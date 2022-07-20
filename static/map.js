@@ -28,6 +28,9 @@ attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright"
 const esri_wi = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'})
 
+const usgs = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}',
+    {attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>'})
+
 const map = L.map('map', {
         preferCanvas: true,
         updateWhenZooming: false,
@@ -59,7 +62,8 @@ const map = L.map('map', {
 const layerControl = L.control.layers({"OpenStreetMap": osm,
     'MacroStrat': macrostrat,
     'OpenTopo': opentopo,
-    "ESRI World Imagery": esri_wi
+    "ESRI World Imagery": esri_wi,
+    'USGS National Basemap': usgs
     }, null).addTo(map);
 
 new L.Control.Draw({
@@ -102,6 +106,9 @@ let MAP_CFG;
 function ResetSelection(){
      myChart.data.datasets = [];
      myChart.update()
+    yearChart.data.datasets = [];
+     yearChart.update()
+
     allmarkers.forEach(function (m){
             m.setStyle({color: m.defaultColor,
                              fillColor: m.defaultColor})

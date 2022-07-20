@@ -115,13 +115,17 @@
 
         <div class="row">
             <div class="col-lg-6 rounded">
-                <h4 class="panelabel">Chart</h4>
+{#                <h4 class="panelabel">Chart</h4>#}
                 <div id="chartprogress">
                     <div class="w-flex h-flex justify-content-center align-items-center">
                         <div class="spinner"></div>
                     </div>
                 </div>
+
+                <h4 class="panelabel">Chart</h4>
                 <canvas id="graph"></canvas>
+                <h4 class="panelabel">Monthly Averages</h4>
+                <canvas id="ygraph"></canvas>
             </div>
             <div class="col-lg-6 rounded">
                 <h4 class="panelabel">Observations</h4>
@@ -136,6 +140,9 @@
             </div>
         </div>
     </div>
+
+    <script src="{{ url_for('static', filename='mchart.js') }}">
+    </script>
 
     <script src="{{ url_for('static', filename='util.js') }}"></script>
     <script src="{{ url_for('static', filename='download.js') }}">

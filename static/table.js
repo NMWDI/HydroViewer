@@ -1,10 +1,9 @@
 const ytitle = 'Depth to Water (ft BGS)'
 
-const ctx = document.getElementById('graph').getContext('2d');
 const yAxis =  {
                     position: "left",
                     reverse: true,
-                    beginAtZero: true,
+                    // beginAtZero: true,
                     title: {text: ytitle, display: true}
 
                 }
@@ -18,7 +17,13 @@ const options = {scales: {yAxis: yAxis,
                  animation: {
         duration: 0
     }}
-const myChart = new Chart(ctx, {type: 'line',
+
+const myChart = new Chart(document.getElementById('graph').getContext('2d'), {type: 'line',
+                                    data: {labels: [], datasets:[]},
+        options: options
+    })
+
+const yearChart = new Chart(document.getElementById('ygraph').getContext('2d'), {type: 'line',
                                     data: {labels: [], datasets:[]},
         options: options
     })
@@ -271,11 +276,15 @@ function selectLocation(iotid, name){
                             var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
                             obsdtt.ajax.url(obsurl)
                             obsdtt.ajax.reload()
+
                             var datasets = myChart.data.datasets
 
                             if (!(datasets.map(function(d){return d.label}).includes(name))){
                                 retrieveItems(obsurl, 10000,
                                     function(obs){
+
+                                    loadYearlyChart(obs)
+
                                     let color = makecolor(iotid)
                                     ndata = {
                                             iot: {'Datastream': ds,
@@ -299,15 +308,18 @@ function selectLocation(iotid, name){
 
                                     datasets.push(ndata)
                                         let obspropname = ds['ObservedProperty']['name']
+                                        console.log(obspropname, 'fasd')
                                         if (obspropname==='Depth to Water Below Ground Surface'){
                                             myChart.options.scales.yAxis.reverse = true
                                         }else{
-                                            myChart.options.scales.yAxis.reverse = false
+                                            yearChart.options.scales.yAxis.reverse = false
                                         }
+                                        yearChart.options.scales.yAxis.title.text=obspropname
 
-                                        myChart.options.scales.yAxis.title.text=obspropname
                                       $(obsdtt.column(1).header()).text( obspropname)
                                     myChart.update()
+                                    yearChart.update()
+
                                     // document.getElementById("chartprogress").style.display ="none"
                                         $('#chartprogress').hide()
                             }
@@ -316,6 +328,32 @@ function selectLocation(iotid, name){
                     }
     )
 }
+
+//
+// const retrieveItems = (url, maxitems, callback) => {
+//     new Promise((resolve, reject) => {
+//         getItems(url, maxitems, 0, [], resolve, reject)}).then(callback)
+// }
+//
+//
+// const getItems = (url, maxitems, i, items, resolve, reject) =>{
+//     $.get(url).then(response=>{
+//         let ritems = items.concat(response.value)
+//         if (maxitems>0){
+//             if (ritems.length>maxitems){
+//                 ritems = ritems.slice(0,maxitems)
+//                 resolve(ritems)
+//                 return
+//             }
+//         }
+//
+//         if (response['@iot.nextLink']!=null){
+//             getItems(response['@iot.nextLink'], maxitems, i+1, ritems, resolve, reject)
+//         }else{
+//             resolve(ritems)
+//         }
+//     })
+// }
 
 function clearInfoTables(){
     $('#datastreaminfotable').html(makeInfoContent( '', '', null))
