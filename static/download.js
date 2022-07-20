@@ -20,7 +20,7 @@ function downloadNMBGMRMostRecentWaterLevels(){
     let url = ST2_URL + "/Locations?$filter=properties/agency eq 'NMBGMR'" +
         "&$expand=Things/Datastreams($filter=name eq 'Groundwater Levels'; $expand=Observations($top=1; $orderby=phenomenonTime desc))"
 
-    retrieveItems(url, 100, rows=>{
+    retrieveItems(url, 10000, rows=>{
         let content = "@iot.id,name,description,latitude,longitude,altitude,geologic_formation,phenomenonTime,DepthToGroundWater_ftbgs,\r\n"
 
         rows.forEach(function(loc){
