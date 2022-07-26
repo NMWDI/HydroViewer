@@ -42,14 +42,56 @@
     <script src="{{ url_for('static', filename='constants.js') }}"></script>
     <script src="{{ url_for('static', filename='util.js') }}"></script>
     <script src="{{ url_for('static', filename='download.js') }}"></script>
+    <script src="{{ url_for('static', filename='dataset.js') }}"></script>
 
+    <script type="text/javascript">
+        init({{ dataset|safe|tojson }})
+    </script>
+
+    <div id="downloadprogress">
+        <div class="w-flex h-flex justify-content-center align-items-center">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg rounded bordered">
+            <h1>Query Maker</h1>
+            <form>
+                <label>Get Locations by Agency</label>
+                <select id="stsource" name="stsource">
+                  <option value="https://st2.newmexicowaterdata.org/FROST-Server/v1.1">ST2</option>
+                  <option value="https://labs.waterdata.usgs.gov/sta/v1.1/">USGS</option>
+                </select>
+
+                <select id="agency" name="agency">
+                    <option>NMBGMR</option>
+                    <option>PVACD</option>
+                </select>
+                <input type="button" onclick="submitQuery1()" value="Submit">
+            </form>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg">
-            <div id="downloadprogress">
-                <div class="w-flex h-flex justify-content-center align-items-center">
-                    <div class="spinner"></div>
-                </div>
-            </div>
+            <form>
+                <label>Get Locations by Name</label>
+                <select id="stsource" name="stsource">
+                    <option value="https://st2.newmexicowaterdata.org/FROST-Server/v1.1">ST2</option>
+                    <option value="https://labs.waterdata.usgs.gov/sta/v1.1/">USGS</option>
+                </select>
+                <label>Name</label>
+                <select id="filtercomp" name="comp">
+                    <option>equals</option>
+                    <option>startswith</option>
+                    <option>endswith</option>
+                </select>
+                <input id='filterstr' type="text">
+                <input type="button" onclick="submitQuery2()" value="Submit">
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg rounded bordered">
             <ul>
                 <li><button type='button' class="btn btn-primary"
                             onclick="downloadNMGMRWells()">Download NMBGMR Wells
@@ -59,14 +101,10 @@
                             onclick="downloadNMBGMRMostRecentWaterLevels()">Download NMBGMR Most Recent Water Levels
                     </button>
                 </li>
+
             </ul>
         </div>
     </div>
-
-
-    <script>
-        $('#downloadprogress').hide()
-    </script>
 
 {% endblock %}
 

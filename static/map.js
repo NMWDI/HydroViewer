@@ -108,6 +108,7 @@ function ResetSelection(){
      myChart.update()
     yearChart.data.datasets = [];
      yearChart.update()
+    $('#obstable').DataTable().clear().draw()
 
     allmarkers.forEach(function (m){
             m.setStyle({color: m.defaultColor,

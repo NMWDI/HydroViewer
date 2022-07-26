@@ -42,6 +42,17 @@ def mychart():
 def datasets():
     return render_template('datasets.html')
 
+
+@app.route('/datasets/nmbgmr_wells')
+def nmbgmr_wells():
+    return render_template('datasets.html', dataset='nmbgmr_wells')
+
+
+@app.route('/datasets/nmbgmr_most_recent_water_levels')
+def nmbgmr_most_recent_water_levels():
+    return render_template('datasets.html', dataset='nmbgmr_most_recent_water_levels')
+
+
 @app.route('/mywell')
 def mywell():
     cfg = {"center_lat": 32.5551493,

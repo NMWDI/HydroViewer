@@ -28,6 +28,7 @@ const yearChart = new Chart(document.getElementById('ygraph').getContext('2d'), 
         options: options
     })
 
+let ods = [];
 // $(document).on({
 //     ajaxStart: function(){
 //         console.log('start')
@@ -124,16 +125,25 @@ $(document).ready(function (){
     //                             <a class='btn  btn-primary' onclick="AddToCart(${data})" >
     //                                <i class='far fa-trash-alt'></i> Delete
     //                             </a></div>`}},
-    var obstable = $('#obstable')
-    var obsdtt = obstable.DataTable({
-                ajax: {url:'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Observations?$top=0',
-                       cache: true,
-                       dataSrc: "value"
-                },
-                columns: [{data: 'phenomenonTime',
-                        label: 'Time'},
-                          {data: 'result'}]
-                });
+    // var obstable = $('#obstable')
+    // var obsdtt = obstable.DataTable({
+    //             // ajax: {url:'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Observations?$top=0',
+    //             //        cache: true,
+    //             //        dataSrc: "value"
+    //             // },
+    //             columns: [{data: 'phenomenonTime'},
+    //                       {data: 'result',
+    //                         render: $.fn.dataTable.render.number(',', '.', 2, '')}]
+    //             });
+    // let obsdtt = obstable.DataTable();
+
+    let obsdtt =  $('#obstable').DataTable(
+                                {'columns': [{'data': 'locationname'},
+                                             {'data': 'phenomenonTime'},
+                                            {'data': 'result',
+                                                'render': $.fn.dataTable.render.number('', '.', 2, '')}]})
+
+
     dtt.on('deselect', function ( e, dt, type, indexes ){
         if ( type === 'row' ) {
         var iotid = dtt.rows( indexes ).data().pluck( 'id' )[0];
@@ -266,25 +276,36 @@ function selectLocation(iotid, name){
                             ds = thing['Datastreams'][0]
                         }
 
-                        var obsdtt =  $('#obstable').DataTable()
+
                         if (ds){
                             populateDatastreamInfoTable(ds)
                             populateSensorInfoTable(ds['Sensor'])
                             populateObservedPropertyInfoTable(ds['ObservedProperty'])
                             m.setStyle({color: 'red',fillColor: 'red'})
                             m.bringToFront();
-                            var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
-                            obsdtt.ajax.url(obsurl)
-                            obsdtt.ajax.reload()
+                            let obsdtt =  $('#obstable').DataTable()
+
+                            const obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
+                            // fetch(obsurl).then(response=>response.json()).then(data=>{
+                            //     console.log('objsasdf', data)
+                            //     obsdtt.clear()
+                            //     obsdtt.rows.add(data['value']).draw()
+                            // })
+                            // obsdtt.ajax.url(obsurl)
+                            // obsdtt.ajax.reload()
 
                             var datasets = myChart.data.datasets
 
                             if (!(datasets.map(function(d){return d.label}).includes(name))){
                                 retrieveItems(obsurl, 10000,
                                     function(obs){
-
+                                        obs.forEach(o=>{
+                                            o['locationname'] = name
+                                        })
+                                    obsdtt.rows.add(obs).draw()
+                                    ods.push(obs)
                                     loadYearlyChart(obs)
-
+                                    updateSliders(obs)
                                     let color = makecolor(iotid)
                                     ndata = {
                                             iot: {'Datastream': ds,
@@ -308,7 +329,6 @@ function selectLocation(iotid, name){
 
                                     datasets.push(ndata)
                                         let obspropname = ds['ObservedProperty']['name']
-                                        console.log(obspropname, 'fasd')
                                         if (obspropname==='Depth to Water Below Ground Surface'){
                                             myChart.options.scales.yAxis.reverse = true
                                         }else{
@@ -316,7 +336,10 @@ function selectLocation(iotid, name){
                                         }
                                         yearChart.options.scales.yAxis.title.text=obspropname
 
-                                      $(obsdtt.column(1).header()).text( obspropname)
+                                      $(obsdtt.column(0).header()).text('Location Name')
+                                      $(obsdtt.column(1).header()).text('Measurement Time')
+                                      $(obsdtt.column(2).header()).text( obspropname)
+
                                     myChart.update()
                                     yearChart.update()
 
