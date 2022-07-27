@@ -54,7 +54,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-lg rounded bordered">
+        <div class="col-lg rounded">
             <h1>Query Maker</h1>
             <form>
                 <label>Get Locations by Agency</label>
@@ -72,7 +72,25 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-lg">
+        <div class="col-lg rounded">
+            <form>
+                <label>Get Locations by Project Name</label>
+                <select id="stsource" name="stsource">
+                  <option value="https://st2.newmexicowaterdata.org/FROST-Server/v1.1">ST2</option>
+                </select>
+                <label>Project Name</label>
+                <select id="projectnamecomp" name="comp">
+                    <option selected>startswith</option>
+                    <option>equals</option>
+                    <option>endswith</option>
+                </select>
+                <input id='projectname' type="text">
+                <input type="button" onclick="submitQuery3()" value="Submit">
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg rounded">
             <form>
                 <label>Get Locations by Name</label>
                 <select id="stsource" name="stsource">
@@ -81,8 +99,8 @@
                 </select>
                 <label>Name</label>
                 <select id="filtercomp" name="comp">
+                    <option selected>startswith</option>
                     <option>equals</option>
-                    <option>startswith</option>
                     <option>endswith</option>
                 </select>
                 <input id='filterstr' type="text">
@@ -90,19 +108,46 @@
             </form>
         </div>
     </div>
+{#    <div class="row">#}
+{#        <div class="col-lg rounded">#}
+{#            <ul>#}
+{#                <li><button type='button' class="btn btn-primary"#}
+{#                            onclick="downloadNMGMRWells()">Download NMBGMR Wells#}
+{#                    </button>#}
+{#                </li>#}
+{#                <li><button type='button' class="btn btn-primary"#}
+{#                            onclick="downloadNMBGMRMostRecentWaterLevels()">Download NMBGMR Most Recent Water Levels#}
+{#                    </button>#}
+{#                </li>#}
+{##}
+{#            </ul>#}
+{#        </div>#}
+{#    </div>#}
     <div class="row">
-        <div class="col-lg rounded bordered">
-            <ul>
-                <li><button type='button' class="btn btn-primary"
-                            onclick="downloadNMGMRWells()">Download NMBGMR Wells
-                    </button>
-                </li>
-                <li><button type='button' class="btn btn-primary"
-                            onclick="downloadNMBGMRMostRecentWaterLevels()">Download NMBGMR Most Recent Water Levels
-                    </button>
-                </li>
-
-            </ul>
+        <div class="col-lg">
+            <button type='button' class="btn btn-primary"#}
+                    onclick="downloadQueryResults()">Download Results
+            </button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg rounded">
+            <table id="downloadlocationstable" class="table table-striped table-bordered table-sm">
+                <thead>
+                    <tr>
+                    <th>location.iot.id</th>
+                    <th>location.name</th>
+                    <th>location.description</th>
+                    <th>location.latitude</th>
+                    <th>location.longitude</th>
+                    <th>location.altitude</th>
+                    <th>location.project_name</th>
+                    <th>things.name</th>
+                    <th>things.description</th>
+                    <th>things.geologic_formation</th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </div>
 
