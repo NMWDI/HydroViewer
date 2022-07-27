@@ -1,4 +1,5 @@
 $(document).ready(function(){
+    $('#downloadprogress').hide()
     $('#downloadlocationstable').DataTable(
         {columns:[{data: loc=>{return loc['@iot.id']}},
                 {data: 'name'},
@@ -10,19 +11,30 @@ $(document).ready(function(){
                 {data: 'Things.0.name'},
                 {data: 'Things.0.description'},
                 {data: loc=>{return loc['Things'][0]['properties']['GeologicFormation'] ? loc['Things'][0]['properties']['GeologicFormation']: "" }},
-
+                {data: loc=>{
+                        let v = loc['Things'][0]['Datastreams']?.[0]?.['Observations'][0]['phenomenonTime']
+                        return v?v:''
+                        }},
+                {data: loc=>{
+                    let v = loc['Things'][0]['Datastreams']?.[0]?.['Observations'][0]
+                        return v?v['result']:''
+                    }}
             ]
         }
     )
-
-
 })
 
 function submitQuery1(){
     $('#downloadprogress').show()
-    let url = $("#stsource")[0].value  +'/Locations?$expand=Things&$filter=properties/agency eq '+'\''+$("#agency")[0].value+'\''
+    let url = $("#stsource")[0].value
+    url +='/Locations?$expand=Things&$filter=properties/agency eq '
+    url+= "'"+$("#agency")[0].value+"'"
+    let include_latest_gwl = $('#include_latest_gwl')[0].checked
+    if (include_latest_gwl){
+        url+="&$expand=Things/Datastreams($filter=name eq 'Groundwater Levels'; $expand=Observations($top=1; $orderby=phenomenonTime desc))"
+    }
 
-    populateTable(url)
+    populateTable(url, include_latest_gwl)
 }
 
 function submitQuery2(){
@@ -43,20 +55,7 @@ function submitQuery2(){
     populateTable(url)
 }
 
-function populateTable(url){
-    $('#downloadprogress').show()
-
-    retrieveItems(url, -1, items=>{
-        let dt = $('#downloadlocationstable').DataTable()
-        dt.clear()
-        dt.rows.add(items).draw()
-        $('#downloadprogress').hide()
-    })
-
-}
-
 function submitQuery3(){
-
     let name = $('#projectname')[0].value.toLowerCase()
     let comp = $('#projectnamecomp')[0].value
     let q ='tolower(properties/project_name)'
@@ -69,10 +68,25 @@ function submitQuery3(){
     }
 
     let url = $("#stsource")[0].value  +'/Locations?$expand=Things&$filter='+ q
-    console.log(url)
+    if ($('#include_latest_gwl3')[0].checked){
+        url+='&$expand=Things/Datastreams($filter=name eq \'Groundwater Levels\'; $expand=Observations($top=1; $orderby=phenomenonTime desc))'
+    }
+
     populateTable(url)
 }
 
+function populateTable(url){
+    $('#downloadprogress').show()
+
+    retrieveItems(url, -1, items=>{
+        let dt = $('#downloadlocationstable').DataTable()
+        console.log(items)
+        dt.clear()
+        dt.rows.add(items).draw()
+        $('#downloadprogress').hide()
+    })
+
+}
 function downloadQueryResults(){
     let dtf = $('#downloadlocationstable').DataTable()
     // console.log(dtf, dtf.rows())

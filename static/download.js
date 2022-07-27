@@ -1,72 +1,56 @@
 
-let DATASET_NAME;
 
-$(document).ready(function(){
-    $('#downloadprogress').hide()
-    console.log('fff', DATASET_NAME)
-    if (DATASET_NAME == 'nmbgmr_wells'){
-        downloadNMGMRWells()
-    }else if (DATASET_NAME == 'nmbgmr_most_recent_water_levels'){
-        downloadNMBGMRMostRecentWaterLevels()
-    }
-})
-
-function init(datasetname){
-    DATASET_NAME = datasetname
-    console.log('aseing', datasetname)
-}
-
-function downloadNMGMRWells(){
-    $('#downloadprogress').show()
-    let url = ST2_URL + '/Locations?$filter=properties/agency eq \'NMBGMR\'&$expand=Things'
-    retrieveItems(url, -1, rows=>{
-        let content = "@iot.id,name,description,latitude,longitude,altitude,geologicFormation\r\n"
-        rows.forEach(function(loc){
-            let row = [loc['@iot.id'], loc['name'], loc['description'],
-                loc['location']['coordinates'][1], loc['location']['coordinates'][0],
-                loc['properties']['Altitude'], loc['Things'][0]['properties']['GeologicFormation']]
-            content+= row +"\r\n"
-            }
-        )
-        downloadFile("NMBGMRWells.csv", content)
-        $('#downloadprogress').hide()
-    })
-}
-
-function downloadNMBGMRMostRecentWaterLevels(){
-    $('#downloadprogress').show()
-
-    let url = ST2_URL + "/Locations?$filter=properties/agency eq 'NMBGMR'" +
-        "&$expand=Things/Datastreams($filter=name eq 'Groundwater Levels'; $expand=Observations($top=1; $orderby=phenomenonTime desc))"
-
-    retrieveItems(url, 10000, rows=>{
-        let content = "@iot.id,name,description,latitude,longitude,altitude,geologic_formation,phenomenonTime,DepthToGroundWater_ftbgs,\r\n"
-
-        rows.forEach(function(loc){
-            let thing = loc['Things'][0]
-            let ds = thing['Datastreams'][0]
-            if (ds){
-                let obs = ds['Observations'][0]
-                if (obs){
-                    let row = [loc['@iot.id'], loc['name'], loc['description'],
-                               loc['location']['coordinates'][1], loc['location']['coordinates'][0],
-                               loc['properties']['Altitude'], thing['properties']['GeologicFormation'],
-                    obs['phenomenonTime'], obs['result']
-                ]
-                content+= row +"\r\n"
-                }
-
-            }
-
-
-            }
-        )
-
-        downloadFile("NMBGMRMostRecentWaterLevels.csv", content)
-        $('#downloadprogress').hide()
-    })
-
-}
+// function downloadNMGMRWells(){
+//     $('#downloadprogress').show()
+//     let url = ST2_URL + '/Locations?$filter=properties/agency eq \'NMBGMR\'&$expand=Things'
+//     retrieveItems(url, -1, rows=>{
+//         let content = "@iot.id,name,description,latitude,longitude,altitude,geologicFormation\r\n"
+//         rows.forEach(function(loc){
+//             let row = [loc['@iot.id'], loc['name'], loc['description'],
+//                 loc['location']['coordinates'][1], loc['location']['coordinates'][0],
+//                 loc['properties']['Altitude'], loc['Things'][0]['properties']['GeologicFormation']]
+//             content+= row +"\r\n"
+//             }
+//         )
+//         downloadFile("NMBGMRWells.csv", content)
+//         $('#downloadprogress').hide()
+//     })
+// }
+//
+// function downloadNMBGMRMostRecentWaterLevels(){
+//     $('#downloadprogress').show()
+//
+//     let url = ST2_URL + "/Locations?$filter=properties/agency eq 'NMBGMR'" +
+//         "&$expand=Things/Datastreams($filter=name eq 'Groundwater Levels'; $expand=Observations($top=1; $orderby=phenomenonTime desc))"
+//
+//     retrieveItems(url, 10000, rows=>{
+//         let content = "@iot.id,name,description,latitude,longitude,altitude,geologic_formation,phenomenonTime,DepthToGroundWater_ftbgs,\r\n"
+//
+//         rows.forEach(function(loc){
+//             let thing = loc['Things'][0]
+//             let ds = thing['Datastreams'][0]
+//             if (ds){
+//                 let obs = ds['Observations'][0]
+//                 if (obs){
+//                     let row = [loc['@iot.id'], loc['name'], loc['description'],
+//                                loc['location']['coordinates'][1], loc['location']['coordinates'][0],
+//                                loc['properties']['Altitude'], thing['properties']['GeologicFormation'],
+//                     obs['phenomenonTime'], obs['result']
+//                 ]
+//                 content+= row +"\r\n"
+//                 }
+//
+//             }
+//
+//
+//             }
+//         )
+//
+//         downloadFile("NMBGMRMostRecentWaterLevels.csv", content)
+//         $('#downloadprogress').hide()
+//     })
+//
+// }
 // function downloadWellMetaDataAll(){
 //     console.log('donwload all')
 //

@@ -44,10 +44,6 @@
     <script src="{{ url_for('static', filename='download.js') }}"></script>
     <script src="{{ url_for('static', filename='dataset.js') }}"></script>
 
-    <script type="text/javascript">
-        init({{ dataset|safe|tojson }})
-    </script>
-
     <div id="downloadprogress">
         <div class="w-flex h-flex justify-content-center align-items-center">
             <div class="spinner"></div>
@@ -67,6 +63,8 @@
                     <option>NMBGMR</option>
                     <option>PVACD</option>
                 </select>
+                <label>Include Latest Groundwater level</label>
+                <input id='include_latest_gwl' type="checkbox">
                 <input type="button" onclick="submitQuery1()" value="Submit">
             </form>
         </div>
@@ -85,6 +83,8 @@
                     <option>endswith</option>
                 </select>
                 <input id='projectname' type="text">
+                <label>Include Latest Groundwater level</label>
+                <input id='include_latest_gwl3' type="checkbox">
                 <input type="button" onclick="submitQuery3()" value="Submit">
             </form>
         </div>
@@ -145,6 +145,8 @@
                     <th>things.name</th>
                     <th>things.description</th>
                     <th>things.geologic_formation</th>
+                    <th>GWL.phenomenonTime</th>
+                    <th>GWL.depth_to_water_ftbgs</th>
                     </tr>
                 </thead>
             </table>
