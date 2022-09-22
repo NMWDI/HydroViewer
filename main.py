@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from flask import Flask, render_template
+import csv
+
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -42,6 +44,7 @@ def mychart():
 def datasets():
     return render_template('datasets.html')
 
+
 #
 # @app.route('/datasets/nmbgmr_wells')
 # def nmbgmr_wells():
@@ -63,6 +66,33 @@ def mywell():
     return render_template('mywell.html',
                            map_cfg=cfg,
                            title='MyWell Hydrograph Viewer')
+
+
+@app.route('/map')
+def mymap():
+    cfg = {"center_lat": 33.5,
+           "center_lon": -104.5,
+           "zoom": 7}
+    return render_template('map.html',
+                           map_cfg=cfg)
+
+
+@app.route('/active_monitoring_wells')
+def active_monitoring_wells():
+    cfg = {"center_lat": 35,
+           "center_lon": -106.5,
+           "zoom": 6}
+
+    with open('./static/current_monitor_wells.csv', 'r') as rfile:
+        reader = csv.DictReader(rfile)
+        locations = list(reader)
+
+    usgs_locations = [l for l in locations if l['Managing Agency'] == 'USGS']
+    nmbgmr_locations = [l for l in locations if l['Managing Agency'] == 'NMBGMR']
+    return render_template('active_monitoring_wells.html',
+                           map_cfg=cfg,
+                           usgs_locations=usgs_locations,
+                           nmbgmr_locations=nmbgmr_locations)
 
 
 if __name__ == '__main__':
