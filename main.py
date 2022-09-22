@@ -87,14 +87,17 @@ def active_monitoring_wells():
         reader = csv.DictReader(rfile)
         locations = list(reader)
 
-    usgs_locations = [l for l in locations if l['Managing_Agency'] == 'USGS']
+    usgs_locations = [l for l in locations if
+                      l['Managing_Agency'] == 'USGS' and l['Type']!='Long-term continuos site']
+    usgs_continuous = [l for l in locations if
+                      l['Managing_Agency'] == 'USGS' and l['Type']=='Long-term continuos site']
     nmbgmr_locations = [l for l in locations if l['Managing_Agency'] == 'NMBGMR']
-
 
     return render_template('active_monitoring_wells.html',
                            map_cfg=cfg,
                            usgs_locations=usgs_locations,
-                           nmbgmr_locations=nmbgmr_locations)
+                           nmbgmr_locations=nmbgmr_locations,
+                           usgs_continuous=usgs_continuous)
 
 
 if __name__ == '__main__':

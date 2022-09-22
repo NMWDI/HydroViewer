@@ -30,17 +30,17 @@
 
 {% block content %}
 
-{#    <div class="popup">#}
-{#        <div id="chartprogress">#}
-{#                        <div class="w-flex h-flex justify-content-center align-items-center">#}
-{#                            <div class="spinner"></div>#}
-{#                        </div>#}
-{#                    </div>#}
-{##}
-{#        <div class="popuptext" id="chartpopup">#}
-{#            <canvas id="chartdiv"></canvas>#}
-{#        </div>#}
-{#    </div>#}
+    <div class="popup">
+        <div id="chartprogress">
+                        <div class="w-flex h-flex justify-content-center align-items-center">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+
+        <div class="popuptext" id="chartpopup">
+            <canvas id="chartdiv"></canvas>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-lg-12 rounded">
@@ -57,6 +57,6 @@
     </script>
     <script>
         mapInit({{ map_cfg|tojson }})
-        mapLoad({{ usgs_locations|tojson }}, {{ nmbgmr_locations|tojson }})
+        mapLoad({{ usgs_locations|tojson }}, {{ nmbgmr_locations|tojson }}, {{ usgs_continuous|tojson }})
     </script>
 {% endblock %}

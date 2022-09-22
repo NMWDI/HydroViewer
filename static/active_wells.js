@@ -1,3 +1,28 @@
+const ytitle = "Foo Bar"
+const yAxis =  {
+                    position: "left",
+                    reverse: true,
+                    // beginAtZero: true,
+                    title: {text: ytitle, display: true}
+
+                }
+const xAxis = {
+                    position: "bottom",
+                    type: "time",
+                    title: {text: "Time", display: true}
+                }
+const options = {scales: {yAxis: yAxis,
+                          xAxis: xAxis},
+                 animation: {
+        duration: 0
+    }}
+
+const myChart = new Chart(document.getElementById('chartdiv').getContext('2d'), {type: 'line',
+                                    data: {labels: [], datasets:[]},
+        options: options
+    })
+$('#chartprogress').hide()
+
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 })
@@ -60,8 +85,9 @@ function mapInit(cfg){
     });
 }
 
-function mapLoad(usgs_locations, nmbgmr_locations) {
+function mapLoad(usgs_locations, nmbgmr_locations, usgs_continuous) {
     loadLayer(usgs_locations, 'circle', 'green', 'USGS')
+    loadLayer(usgs_continuous, 'circle', 'orange', 'USGS-Continuous')
     loadLayer(nmbgmr_locations, 'circle', 'red', 'NMBGMR')
 }
 function loadLayer(locations, shape, color, label){
@@ -76,23 +102,140 @@ function loadLayer(locations, shape, color, label){
     })
 }
 
-function selectLocation(marker){
-    console.log(marker)
-    let url;
-    if (marker.source==='USGS'){
-        url = 'https://'
-    }else {
-        url = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/'
-    }
+// function selectLocation(marker){
+//     console.log(marker)
+//     let url;
+//     if (marker.source==='USGS'){
+//         url = 'https://'
+//     }else {
+//         url = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/'
+//     }
+//
+//     url += 'Locations?$filter=name eq \''+marker.sourcedata.Well_ID+'\''
+//     console.log(url)
+//
+//     $.get(url).then(function(data){
+//         console.log(data)
+//         marker.closePopup()
+//
+//
+//
+//
+//     })
+//
+// }
 
-    url += 'Locations?$filter=name eq \''+marker.sourcedata.Well_ID+'\''
+function selectLocation(marker){
+
+    $('#chartprogress').show()
+
+    let url;
+    let baseurl;
+    let dsname;
+    // let iotid = layer.iotid
+    let name = marker.sourcedata.Well_ID
+    let fname;
+    if (marker.source==='USGS' || marker.source=='USGS-Continuous'){
+        console.log(marker.sourcedata.Type, marker.sourcedata.Type=='Long-term continuos site')
+        if (!(marker.sourcedata.Type==='Long-term continuos site')){
+            $('#chartprogress').hide()
+            return
+        }
+        baseurl = 'https://labs.waterdata.usgs.gov/sta/v1.1/'
+        fname = 'USGS-'+name
+        dsname = ''
+        make_id = function(iotid){
+        return "'"+iotid+"'"
+        }
+        makecolor = function(iotid){
+            return colors[hashIOTID(iotid)%10]
+        }
+    }else {
+        baseurl = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/'
+        fname = name
+        dsname = 'Groundwater Levels'
+        make_id = function(iotid){
+        return iotid
+        }
+        makecolor = function(iotid){
+            return colors[iotid%10]
+        }
+    }
+    url =baseurl+ 'Locations?$filter=name eq \''+fname+'\''
     console.log(url)
 
-    $.get(url).then(function(data){
-        console.log(data)
         marker.closePopup()
-    })
 
+        $.get(url+'&$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor').then(
+                        function (data){
+                            // console.log('reload data', data)
+                            data = data['value'][0]
+                            // console.log(data)
+                            var thing = data['Things'][0]
+                            let ds;
+                            if (dsname){
+                                ds = thing['Datastreams'].filter(function (d){
+                                return d['name'] == dsname
+                                })[0]
+                            }else{
+                                ds = thing['Datastreams'][0]
+                            }
+
+                            console.log(ds, dsname, thing)
+                            if (ds){
+                                // let locurl = 'Locations('+make_id(data['@iot.id'])+')/'
+                                const obsurl = baseurl+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
+
+                                var datasets = myChart.data.datasets
+                                if (!(datasets.map(function(d){return d.label}).includes(name))){
+                                    // marker.setStyle({color: 'red',fillColor: 'red'})
+                                    marker.bringToFront();
+
+                                    retrieveItems(obsurl, 10000,
+                                        function(obs){
+                                            obs.forEach(o=>{
+                                                o['locationname'] = name
+                                            })
+                                        // ods.push(obs)
+                                        // loadYearlyChart(obs)
+                                        // updateSliders(obs)
+                                        // let color = makecolor(iotid)
+                                            let color='black'
+                                        ndata = {
+                                                iot: {'Datastream': ds,
+                                                      'Thing': thing,
+                                                      'Location': {'name': name,
+                                                                    // '@iot.id': iotid,
+                                                                    // 'url': locationURL,
+                                                                    'location': data['location']},
+                                                      'sourceURL': url,
+                                                      // 'source': m.source
+                                                },
+                                                label: name,
+                                                data: obs.map(f=>{
+                                                    var d = new Date(f['phenomenonTime'])
+                                                    d.setHours(d.getHours()+6)
+                                                    return [d, f['result']]
+                                                }),
+                                                borderColor: color,
+                                                backgroundColor: color,
+                                                tension: 0.1
+                                            }
+                                            myChart.data.datasets = [ndata,]
+                                            let obspropname = ds['ObservedProperty']['name']
+                                            if (obspropname==='Depth to Water Below Ground Surface'){
+                                                myChart.options.scales.yAxis.reverse = true
+                                            }
+                                        myChart.update()
+                                        $('#chartprogress').hide()
+                                }
+                             )}
+                            }
+                            $('#chartprogress').hide()
+                        }
+        )
+
+    // })
 }
 function loadMarker(loc, shape, color, source){
     // console.log(loc)
