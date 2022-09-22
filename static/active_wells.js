@@ -65,19 +65,60 @@ function mapLoad(usgs_locations, nmbgmr_locations) {
     loadLayer(nmbgmr_locations, 'circle', 'red', 'NMBGMR')
 }
 function loadLayer(locations, shape, color, label){
-    let markers = locations.map(function (loc){return loadMarker(loc, shape, color)})
+    let markers = locations.map(function (loc){return loadMarker(loc, shape, color, label)})
     const layer = new L.featureGroup(markers)
     map.addLayer(layer)
     layerControl.addOverlay(layer, '<span class="circle" style="background: ' +
         color+'"></span> ' +
         label)
+    layer.on('click', function(e){
+        selectLocation(e.layer)
+    })
 }
 
-function loadMarker(loc, shape, color){
-    console.log(loc)
-    let marker = L.circleMarker([loc['Latitude'], loc['Longitude']])
+function selectLocation(marker){
+    console.log(marker)
+    let url;
+    if (marker.source==='USGS'){
+        url = 'https://'
+    }else {
+        url = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/'
+    }
+
+    url += 'Locations?$filter=name eq \''+marker.sourcedata.Well_ID+'\''
+    console.log(url)
+
+    $.get(url).then(function(data){
+        console.log(data)
+        marker.closePopup()
+    })
+
+}
+function loadMarker(loc, shape, color, source){
+    // console.log(loc)
+    let marker;
+    if (shape==='circle'){
+        marker = L.circleMarker([loc['Latitude'], loc['Longitude']])
+
+    }else{
+        marker = L.triangleMarker([loc['Latitude'], loc['Longitude']], {'width': 8, "height": 4})
+
+    }
+    marker.source = source
+    marker.sourcedata = loc
     marker.setStyle({color: color,
         fillColor: color,
         radius: 4})
+    marker.bindPopup("Well ID: "+loc['Well_ID']+'<br/>'+
+        'Agency: '+loc['Managing_Agency']+'<br/>'+
+        'Type: '+ loc['Type']+'<br/>'+
+        'Well Depth(ft): '+loc['Well_Depth'])
+
+     marker.on('mouseover', function(e) {
+        marker.openPopup();
+    } )
+    marker.on('mouseout', function(e) {
+        map.closePopup();
+    } )
     return marker
 }

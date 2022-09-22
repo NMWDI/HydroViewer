@@ -53,6 +53,8 @@
     </script>
     <script src="{{ url_for('static', filename='util.js') }}">
     </script>
+    <script src="{{ url_for('static', filename='triangle_marker.js') }}">
+    </script>
     <script>
         mapInit({{ map_cfg|tojson }})
         mapLoad({{ usgs_locations|tojson }}, {{ nmbgmr_locations|tojson }})

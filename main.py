@@ -83,12 +83,14 @@ def active_monitoring_wells():
            "center_lon": -106.5,
            "zoom": 6}
 
-    with open('./static/current_monitor_wells.csv', 'r') as rfile:
+    with open('./static/active_monitoring_wells.csv', 'r') as rfile:
         reader = csv.DictReader(rfile)
         locations = list(reader)
 
-    usgs_locations = [l for l in locations if l['Managing Agency'] == 'USGS']
-    nmbgmr_locations = [l for l in locations if l['Managing Agency'] == 'NMBGMR']
+    usgs_locations = [l for l in locations if l['Managing_Agency'] == 'USGS']
+    nmbgmr_locations = [l for l in locations if l['Managing_Agency'] == 'NMBGMR']
+
+
     return render_template('active_monitoring_wells.html',
                            map_cfg=cfg,
                            usgs_locations=usgs_locations,
