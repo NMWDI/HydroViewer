@@ -13,6 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import time
+from datetime import datetime
+from functools import reduce
+
+import requests
+from flask import Flask, render_template
 import csv
 
 from flask import Flask, render_template, request
@@ -100,6 +106,58 @@ def active_monitoring_wells():
                            usgs_continuous=usgs_continuous)
 
 
+def get_monthly_average_well(month, datastream):
+    """
+    get the average for this month for this well
+    """
+    obsurl = datastream['@iot.selfLink']
+    now = datetime.now()
+    low = f'{now.year}-{month:02n}-01:00:00:00.000Z'
+    if month == 12:
+        high = f'{now.year}-{month + 1:02n}-01:00:00:00.000Z'
+    else:
+        high = f'{now.year}-{month:02n}-31:00:00:00.000Z'
+
+    obsurl = f'{obsurl}/Observations?$filter=phenomenonTime ge {low} and phenomenonTime lt {high}'
+    resp = requests.get(obsurl)
+    if resp.status_code == 200:
+        obs = resp.json()['value']
+        results = [o['result'] for o in obs]
+
+        return average(results)
+
+
+def average(vs):
+    return reduce(lambda a, b: (a + b) / 2, vs)
+
+
+def get_monthly_average():
+    url = 'https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations'
+    resp = requests.get(f"{url}?$filter=properties/agency eq 'PVACD'&$expand=Things/Datastreams")
+    if resp.status_code == 200:
+        months = [average(
+            [get_monthly_average_well(i + 1, location['Things'][0]['Datastreams'][0])
+             for location in resp.json()['value']]
+        ) for i in range(12)]
+
+        return months
+
+
+MONTHLY_AVG = get_monthly_average()
+
+LAST_UPDATE = time.time()
+
+
+@app.route('/pvacd_monthly_average')
+def make_pvacd_monthly_average():
+    global MONTHLY_AVG, LAST_UPDATE
+    if MONTHLY_AVG is None or time.time() - LAST_UPDATE > 60 * 60 * 24:
+        MONTHLY_AVG = get_monthly_average()
+        LAST_UPDATE = time.time()
+
+    return MONTHLY_AVG
+
+
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App
     # Engine, a webserver process such as Gunicorn will serve the app. This
@@ -108,4 +166,6 @@ if __name__ == '__main__':
     # the "static" directory. See:
     # http://flask.pocoo.org/docs/1.0/quickstart/#static-files. Once deployed,
     # App Engine itself will serve those files as configured in app.yaml.
+
+    get_monthly_average()
     app.run(host='127.0.0.1', port=8080, debug=True)
