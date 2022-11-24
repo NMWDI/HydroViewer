@@ -35,6 +35,24 @@ def root():
                            map_cfg=cfg,
                            title='PVACD Hydrograph Viewer')
 
+@app.route('/dashboard')
+def dashboard():
+    cfg = {"center_lat": 33.5,
+           "center_lon": -104.5,
+           "zoom": 7,}
+    return render_template('dashboard.html',
+                           map_cfg=cfg,
+                           wells=[{'iotid': 9408,
+                                   'name': 'Poe Corn',
+                                   'chartid': 'depthtowaterchart0'},
+                                  {'iotid': 9409,
+                                   'name': 'Foo',
+                                   'chartid': 'depthtowaterchart1'},
+                                  {'iotid': 9410,
+                                   'name': 'Bar',
+                                   'chartid': 'depthtowaterchart2'},
+                                  ],
+                           title='PVACD Hydrograph Viewer')
 
 @app.route('/info')
 def info():
@@ -143,19 +161,19 @@ def get_monthly_average():
         return months
 
 
-MONTHLY_AVG = get_monthly_average()
+# MONTHLY_AVG = get_monthly_average()
 
 LAST_UPDATE = time.time()
 
 
-@app.route('/pvacd_monthly_average')
-def make_pvacd_monthly_average():
-    global MONTHLY_AVG, LAST_UPDATE
-    if MONTHLY_AVG is None or time.time() - LAST_UPDATE > 60 * 60 * 24:
-        MONTHLY_AVG = get_monthly_average()
-        LAST_UPDATE = time.time()
-
-    return MONTHLY_AVG
+# @app.route('/pvacd_monthly_average')
+# def make_pvacd_monthly_average():
+#     global MONTHLY_AVG, LAST_UPDATE
+#     if MONTHLY_AVG is None or time.time() - LAST_UPDATE > 60 * 60 * 24:
+#         MONTHLY_AVG = get_monthly_average()
+#         LAST_UPDATE = time.time()
+#
+#     return MONTHLY_AVG
 
 
 if __name__ == '__main__':

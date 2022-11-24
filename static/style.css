@@ -31,10 +31,31 @@ html, body {
     /*height: 500px;*/
 }
 
+#olmap {
+    width: 100%;
+    height: 700px;
+    /*height: 50vh*/
+    /*height: 500px;*/
+}
+
+.layer-switcher {
+  position: absolute;
+  top: 1.5em;
+  right: 0.5em;
+  text-align: left;
+}
+
 .vscroll {
 position: relative;
 height: 300px;
 overflow: auto;
+}
+
+.depthtowaterchart {
+ display: inline-block;
+    position: relative;
+  width: 100%;
+  height: 250px
 }
 
 /*.table-wrapper-scroll-y {*/
@@ -64,6 +85,9 @@ table th {
 #green {background-color: green}
 #blue {background-color: blue}
 
+.layoutdebug {
+  background-color: #a1b4b9;
+}
 
 /* Style the tab */
 .tab {
@@ -114,8 +138,8 @@ table th {
 .spinner {
   height: 60px;
   width: 60px;
-  margin: auto;
-  top: 50%;
+  /*margin: auto;*/
+  /*top: 50%;*/
   right: 50%;
   /*width: 100%;*/
   display: flex;
@@ -191,3 +215,4 @@ table th {
 .panelabel {
   text-align: center;
 }
+
