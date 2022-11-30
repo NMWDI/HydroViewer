@@ -260,6 +260,10 @@ function selectLocation(iotid, name){
 
     $.get(locationURL+'?$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor').then(
                     function (data){
+
+                        loadManualMeasurements(iotid, name)
+
+
                         // console.log('reload data', data)
                         var thing = data['Things'][0]
 
@@ -306,28 +310,7 @@ function selectLocation(iotid, name){
                                     ods.push(obs)
                                     loadYearlyChart(obs)
                                     updateSliders(obs)
-                                    let color = makecolor(iotid)
-                                    ndata = {
-                                            iot: {'Datastream': ds,
-                                                  'Thing': thing,
-                                                  'Location': {'name': name,
-                                                                '@iot.id': iotid,
-                                                                'url': locationURL,
-                                                                'location': data['location']},
-                                                  'sourceURL': url,
-                                                  'source': m.source},
-                                            label: name,
-                                            data: obs.map(f=>{
-                                                var d = new Date(f['phenomenonTime'])
-                                                d.setHours(d.getHours()+6)
-                                                return [d, f['result']]
-                                            }),
-                                            borderColor: color,
-                                            backgroundColor: color,
-                                            tension: 0.1
-                                        }
-
-                                    datasets.push(ndata)
+                                    add_data_to_chart(iotid, thing, ds, locationURL, url)
                                         let obspropname = ds['ObservedProperty']['name']
                                         if (obspropname==='Depth to Water Below Ground Surface'){
                                             myChart.options.scales.yAxis.reverse = true
@@ -377,6 +360,65 @@ function selectLocation(iotid, name){
 //         }
 //     })
 // }
+
+const NM_AQUIFER_PVACD={'Orchard Park': 'PV-001'}
+function loadManualMeasurements(iotid, name){
+    //get the associated measurements
+    let associated_name = NM_AQUIFER_PVACD[name]
+    let url = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1/"
+    let locationURL = url+"/Locations?$filter=name eq '"+associated_name+"'"
+    $.get(locationURL+'&$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor').then(
+        function(data){
+            let thing = data['Things'][0]
+            let ds;
+            // if (dsname){
+            //     ds = thing['Datastreams'].filter(function (d){
+            //     return d['name'] == dsname
+            //     })[0]
+            // }else{
+            //     ds = thing['Datastreams'][0]
+            // }
+            ds = thing['Datastreams'][0]
+            const obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
+             retrieveItems(obsurl, 10000,
+                                    function(obs){
+                                        obs.forEach(o=>{
+                                            o['locationname'] = name
+                                        })
+                                    // obsdtt.rows.add(obs).draw()
+                                    // ods.push(obs)
+                                    add_data_to_chart(iotid, thing, ds, locationURL, url)})
+
+        }
+    )
+}
+
+function add_data_to_chart(iotid, thing,ds, locationURL, url){
+    let color = makecolor(iotid)
+
+    let ndata = {
+            iot: {'Datastream': ds,
+                  'Thing': thing,
+                  'Location': {'name': name,
+                                '@iot.id': iotid,
+                                'url': locationURL,
+                                'location': data['location']},
+                  'sourceURL': url,
+                  'source': m.source},
+            label: name,
+            data: obs.map(f=>{
+                var d = new Date(f['phenomenonTime'])
+                d.setHours(d.getHours()+6)
+                return [d, f['result']]
+            }),
+            borderColor: color,
+            backgroundColor: color,
+            tension: 0.1
+        }
+
+    myChart.data.datasets.push(ndata)
+    myChart.update()
+}
 
 function clearInfoTables(){
     $('#datastreaminfotable').html(makeInfoContent( '', '', null))

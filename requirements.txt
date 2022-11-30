@@ -2,3 +2,5 @@ flask
 requests
 pysta>=0.0.30
 gunicorn
+dash
+plotly

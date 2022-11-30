@@ -37,7 +37,27 @@ html, body {
     /*height: 50vh*/
     /*height: 500px;*/
 }
+.triangle-up {
+	width: 0;
+	height: 0;
+	border-left: 12px solid transparent;
+	border-right: 12px solid transparent;
+	border-bottom: 25px solid #555;
+}
+.triangle-down {
+	width: 0;
+	height: 0;
+	border-left: 12px solid transparent;
+	border-right: 12px solid transparent;
+	border-top: 25px solid #555;
+}
 
+.increase{
+  background-color: red;
+}
+.decrease {
+  background-color: green;
+}
 .layer-switcher {
   position: absolute;
   top: 1.5em;

@@ -2,10 +2,6 @@
 <html>
   <head>
       <title>HydroViewer</title>
-      {% block head %}
-        <title>{% block title %}{% endblock %} - Hydroviewer</title>
-      {% endblock %}
-
       <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
 
@@ -14,6 +10,9 @@
         crossorigin="anonymous"></script>
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
 
+      {% block head %}
+        <title>{% block title %}{% endblock %} - Hydroviewer</title>
+      {% endblock %}
   </head>
   <body>
     <header>

@@ -244,7 +244,11 @@ function loadChart(c){
                         datasets.push(ndata)
 
                             let trend=calculate_trend(ndata.data)
-                        document.getElementById(c.trendid).innerHTML = trend
+                            let elem =  document.getElementById(c.trendid)
+                            // elem.innerHTML = trend
+                            elem.className=trend
+                            // elem.classList.add(trend)
+                            elem.children[0].className=trend=='increase'?'triangle-up':'triangle-down'
                         c.chart.update()
                         document.getElementById(c.progressid).style.display ="none"
                 }
@@ -302,7 +306,8 @@ function loadPVACDMonitorWells(s){
                         </div>
                         <canvas  id="depthtowaterchart`+cnt+`"></canvas>
                         </div>`
-                shtml+=`<tr><td>`+li['name']+`</td><td id=trend`+cnt+`></td></tr>`
+                shtml+=`<tr><td>`+li['name']+`</td><td id=trend`+cnt+`><div></div>
+</td></tr>`
                 cnt+=1;
             }
             shtml+='</table>'

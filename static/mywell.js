@@ -157,7 +157,85 @@ function selectLocation(iotid, name){
         makecolor = function(iotid){
             return colors[iotid%10]
         }
-    }
+    }    let locationURL = url+'Locations('+make_id(iotid)+')'
+    console.log(locationURL+'?$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor')
+    $.get(locationURL+'?$expand=Things/Datastreams/ObservedProperty,Things/Datastreams/Sensor').then(
+                    function (data){
+                        // console.log('reload data', data)
+                        var thing = data['Things'][0]
+
+                        populateThingInfoTable(thing)
+                        openInfo(null, 'Location')
+                        populateDatastreamsInfoTable(thing['Datastreams'])
+
+                        let ds;
+                        if (dsname){
+                            ds = thing['Datastreams'].filter(function (d){
+                            return d['name'] == dsname
+                            })[0]
+                        }else{
+                            ds = thing['Datastreams'][0]
+                        }
+
+                        var obsdtt =  $('#obstable').DataTable()
+                        if (ds){
+                            populateDatastreamInfoTable(ds)
+                            populateSensorInfoTable(ds['Sensor'])
+                            populateObservedPropertyInfoTable(ds['ObservedProperty'])
+                            m.setStyle({color: 'red',fillColor: 'red'})
+                            m.bringToFront();
+                            var obsurl = url+"Datastreams("+make_id(ds["@iot.id"])+")/Observations?$top=1000&$orderby=phenomenonTime desc"
+                            obsdtt.ajax.url(obsurl)
+                            obsdtt.ajax.reload()
+                             var datasets = myChart.data.datasets
+                            // console.log(!(datasets.map(function(d){return d.label}).includes(name)),
+                            // name, datasets.map(function(d){return d.label}))
+                            if (!(datasets.map(function(d){return d.label}).includes(name))){
+                                document.getElementById("progress").style.display ="flex"
+
+                                retrieveItems(obsurl, 10000,
+                                    function(obs){
+
+
+                                    let color = makecolor(iotid)
+
+                                    ndata = {
+                                            iot: {'Datastream': ds,
+                                                  'Thing': thing,
+                                                  'Location': {'name': name,
+                                                                '@iot.id': iotid,
+                                                                'url': locationURL},
+                                                  'sourceURL': url,
+                                                  'source': m.source},
+                                            label: name,
+                                            data: obs.map(f=>{
+                                                var d = new Date(f['phenomenonTime'])
+                                                d.setHours(d.getHours()+6)
+                                                return [d, f['result']]
+                                            }),
+
+                                            borderColor: color,
+                                            backgroundColor: color,
+                                            tension: 0.1
+                                        }
+
+                                    datasets.push(ndata)
+                                        let obspropname = ds['ObservedProperty']['name']
+                                        if (obspropname==='Depth to Water Below Ground Surface'){
+                                            myChart.options.scales.yAxis.reverse = true
+                                        }else{
+                                            myChart.options.scales.yAxis.reverse = false
+                                        }
+
+                                        myChart.options.scales.yAxis.title.text=obspropname
+                                      $(obsdtt.column(1).header()).text( obspropname)
+                                    myChart.update()
+                                    document.getElementById("progress").style.display ="none"
+                            }
+                         )}
+                        }
+                    }
+    )
 
     clearInfoTables()
     populateLocationInfoTable(iotid, name, m.properties)
